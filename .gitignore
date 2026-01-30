@@ -1,3 +1,9 @@
+bin
+layout
+target
+.settings
+.vscode
+
 # Compiled class file
 *.class
 
