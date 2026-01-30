@@ -3,6 +3,7 @@ layout
 target
 .settings
 .vscode
+.idea
 
 # Compiled class file
 *.class
