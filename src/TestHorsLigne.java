@@ -1,6 +1,6 @@
 import vue.GameLauncher;
 
-public class Test {
+public class TestHorsLigne {
 
     public static void main(String[] args) throws Exception {
         new GameLauncher();

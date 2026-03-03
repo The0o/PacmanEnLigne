@@ -23,6 +23,11 @@ public class ControllerPacmanGame extends AbstractController {
     public GameClient gameClient;
 
     public ControllerPacmanGame(String layout, double difficultePourcentage, GameClient gameClient) throws Exception {
+    	this(layout, difficultePourcentage);
+    	this.gameClient = gameClient;
+    }
+    
+    public ControllerPacmanGame(String layout, double difficultePourcentage) throws Exception {
     	this.gameClient = gameClient;
         this.game = new PacmanGame(1000, layout, difficultePourcentage);
         ViewPacmanGame viewGame = new ViewPacmanGame(((PacmanGame)this.game).getMaze());

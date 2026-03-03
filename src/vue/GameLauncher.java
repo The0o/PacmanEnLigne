@@ -27,8 +27,8 @@ import controller.ControllerPacmanGame;
 
 public class GameLauncher {
 
-    JComboBox<String> choixNiveau;
-    JComboBox<String> choixDifficulte;
+    protected JComboBox<String> choixNiveau;
+    protected JComboBox<String> choixDifficulte;
     public static Clip clip; //static pour n'avoir qu'une musique si on revient au enu principal
 
     public GameLauncher() {
@@ -167,8 +167,7 @@ public class GameLauncher {
         } else if (difficulte == 3) {
             diff = 0.9;
         }
-        GameClient gameClient = new GameClient("localhost", 9081);
-        new ControllerPacmanGame(path, diff, gameClient);
+        new ControllerPacmanGame(path, diff);
     }
     
 }
