@@ -8,10 +8,14 @@ import java.net.Socket;
 import java.util.Scanner;
 import com.google.gson.Gson;
 
+import game.Game;
+import vue.ViewPacmanGame;
+
 public class GameClient {
     private ConnectionToServer server;
     private Socket socket;
     private Gson gson = new Gson();
+    private ViewPacmanGame viewGame;
     
     public static void main(String[] args) {
         try {
@@ -20,6 +24,11 @@ public class GameClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame) throws IOException {
+    	this.viewGame = viewGame;
+    	this.startClient(IPAdress, port);
     }
     
     public GameClient(String IPAdress, int port) throws IOException {
@@ -31,16 +40,16 @@ public class GameClient {
         server = new ConnectionToServer(socket);
 
         System.out.println("Tapez une phrase (ou 'quit' pour quitter) :");
-        Scanner sc = new Scanner(System.in);
+        //Scanner sc = new Scanner(System.in);
         
-        while(true) {
+        /*while(true) {
             if (sc.hasNextLine()) {
                 String ligne = sc.nextLine();
                 if (ligne.equals("quit")) break;
                 send(ligne);
             }
         }
-        sc.close();
+        sc.close();*/
         socket.close();
     }
 
@@ -59,8 +68,13 @@ public class GameClient {
                     try {
                         String line;
                         while((line = in.readLine()) != null) {
-                            String message = gson.fromJson(line, String.class);
-                            System.out.println("Message Reçu: " + message);
+                            //String message = gson.fromJson(line, String.class);
+                            //System.out.println("Message Reçu: " + message);
+                            if (viewGame != null) {
+                            	//condition pour gerer partie en ligne et hors ligne
+                                Game etatDuJeu = gson.fromJson(line, Game.class);
+                                viewGame.actualiser(etatDuJeu);
+                            }
                         }
                     } catch(IOException e) { 
                         e.printStackTrace(); 
