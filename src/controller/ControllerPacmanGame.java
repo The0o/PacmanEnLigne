@@ -10,6 +10,7 @@ import java.util.Iterator;
 
 import javax.swing.JFrame;
 
+import clientMain.GameClient;
 import model.Agent;
 import model.Pacman;
 import vue.ViewCommand;
@@ -19,8 +20,10 @@ public class ControllerPacmanGame extends AbstractController {
     
     public EtatJeu etatCourant;
     public ViewCommand viewCommand;
+    public GameClient gameClient;
 
-    public ControllerPacmanGame(String layout, double difficultePourcentage) throws Exception {
+    public ControllerPacmanGame(String layout, double difficultePourcentage, GameClient gameClient) throws Exception {
+    	this.gameClient = gameClient;
         this.game = new PacmanGame(1000, layout, difficultePourcentage);
         ViewPacmanGame viewGame = new ViewPacmanGame(((PacmanGame)this.game).getMaze());
         this.game.enregistrerObservateur(viewGame);

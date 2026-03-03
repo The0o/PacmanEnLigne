@@ -22,7 +22,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-
+import clientMain.GameClient;
 import controller.ControllerPacmanGame;
 
 public class GameLauncher {
@@ -167,7 +167,8 @@ public class GameLauncher {
         } else if (difficulte == 3) {
             diff = 0.9;
         }
-        new ControllerPacmanGame(path, diff);
+        GameClient gameClient = new GameClient("localhost", 9081);
+        new ControllerPacmanGame(path, diff, gameClient);
     }
     
 }
