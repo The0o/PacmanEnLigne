@@ -57,7 +57,7 @@ public class GameClient {
                         while((line = in.readLine()) != null) {
                             if (viewGame != null) {
                             	//condition pour gerer partie en ligne et hors ligne
-                                Game etatDuJeu = gson.fromJson(line, Game.class);
+                            	GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 viewGame.actualiser(etatDuJeu);
                             }
                         }
