@@ -18,6 +18,7 @@ import java.sql.SQLException;
 /**
  * Servlet implementation class UsersServlet
  */
+//Register: http://localhost:8080/serveurWeb/api/users
 @WebServlet("/api/users")
 public class UsersServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
