@@ -1,29 +1,28 @@
 package vue;
+import javax.swing.JOptionPane;
 import clientMain.GameClient;
-import game.Game;
 import game.PacmanGame;
 
 public class GameLauncherEnLigne extends GameLauncher {
     
+    @Override
     public void lancerJeu() throws Exception {
-        String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "layouts/" + choixFichier;
-
-        int difficulte = choixDifficulte.getSelectedIndex();
-        double diff = 0.4;
-        if (difficulte == 0) {
-            diff = 0.1;
-        } else if (difficulte == 2) {
-            diff = 0.7;
-        } else if (difficulte == 3) {
-            diff = 0.9;
+        // 1. Demander l'adresse IP à l'utilisateur (par défaut localhost si on joue sur le même PC)
+        String ipServeur = JOptionPane.showInputDialog(null, "Entrez l'adresse IP du serveur :", "localhost");
+        
+        if (ipServeur == null || ipServeur.trim().isEmpty()) {
+            return; // Le joueur a annulé
         }
-        //WARNING : pour l'instant ça gere rien du tout, et encore moins la fonction en ligne.
-        //Sur cette classe (le GameLauncher), il manque de pouvoir se connecter à plusieurs, faire des rooms, partie en ligne aleatoire, etc
-        Game game = new PacmanGame(1000, "layouts/test.lay", 0.4);
-        ViewPacmanGame viewGame = new ViewPacmanGame(((PacmanGame) game).getMaze());
-        GameClient gameClient = new GameClient("localhost", 9081, viewGame);
+
+        // 2. Créer une vue initiale (le vrai labyrinthe sera envoyé par le serveur)
+        PacmanGame fakeGame = new PacmanGame(1000, "layouts/test.lay", 0.1);
+        ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
+        
+        // 3. Connecter le client au serveur avec l'IP saisie
+        try {
+            new GameClient(ipServeur, 9081, viewGame);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Impossible de se connecter au serveur " + ipServeur);
+        }
     }
-
-
 }

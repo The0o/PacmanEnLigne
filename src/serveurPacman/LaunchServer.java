@@ -33,7 +33,7 @@ public class LaunchServer {
         serverSocket = new ServerSocket(port);
         
         try {
-            vraiJeu = new PacmanGame(1000, "layouts/bigSearch_twoPacmans_oneGhost.lay", 0.0);
+            vraiJeu = new PacmanGame(1000, "layouts/test.lay", 0.1);
             vraiJeu.init();
         } catch (Exception e) {
             e.printStackTrace();
@@ -84,7 +84,7 @@ public class LaunchServer {
                         vraiJeu.step();
                         GameStateModel gameState = pacmanGameToGameStateModel(vraiJeu);
                         sendToAll(gson.toJson(gameState));
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
                         
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -104,7 +104,7 @@ public class LaunchServer {
     		}
     		else {
     			stateModel.getPositionsPacmans().add(vraiJeu.listeAgent.get(i).getPosition());
-    		}
+    		} 
     	}
         return stateModel;
     }
