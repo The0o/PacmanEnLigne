@@ -41,19 +41,6 @@ public class GameClient {
     public void startClient(String IPAddress, int port) throws IOException {
         socket = new Socket(IPAddress, port);
         server = new ConnectionToServer(socket);
-
-        System.out.println("Tapez une phrase (ou 'quit' pour quitter) :");
-        //Scanner sc = new Scanner(System.in);
-        
-        /*while(true) {
-            if (sc.hasNextLine()) {
-                String ligne = sc.nextLine();
-                if (ligne.equals("quit")) break;
-                send(ligne);
-            }
-        }
-        sc.close();*/
-        socket.close();
     }
 
     private class ConnectionToServer {
@@ -71,11 +58,9 @@ public class GameClient {
                     try {
                         String line;
                         while((line = in.readLine()) != null) {
-                            //String message = gson.fromJson(line, String.class);
-                            //System.out.println("Message Reçu: " + message);
                             if (viewGame != null) {
                             	//condition pour gerer partie en ligne et hors ligne
-                                Game etatDuJeu = gson.fromJson(line, Game.class);
+                            	GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 viewGame.actualiser(etatDuJeu);
                             }
                         }

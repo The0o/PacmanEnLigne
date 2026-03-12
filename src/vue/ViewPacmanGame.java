@@ -13,6 +13,8 @@ import designPattern.Observateur;
 import game.Game;
 import game.PacmanGame;
 import model.Agent;
+import model.Fantome;
+import model.GameStateModel;
 import model.Maze;
 import model.Pacman;
 import model.PositionAgent;
@@ -44,6 +46,22 @@ public class ViewPacmanGame implements Observateur {
     public JFrame getJFrame() {
         return jFrame;
     }
+    
+    public void actualiserClient(GameStateModel gameState) {
+    	this.panelPacman.setMaze(gameState.getMaze());
+    	ArrayList<Pacman> listePacman = new ArrayList<Pacman>();
+    	ArrayList<Fantome> listeFantome = new ArrayList<Fantome>();
+    	for (int i = 0; i < gameState.getListeAgent().size(); i++) {
+    		if (gameState.getListeAgent().get(i).getClass().equals(Fantome.class)) {
+    			listeFantome.add((Fantome) gameState.getListeAgent().get(i));
+    		}
+    		else {
+    			listePacman.add((Pacman) gameState.getListeAgent().get(i));
+    		}
+    	}
+    	this.panelPacman.repaint();
+    }
+    
 
     @Override
     public void actualiser(Game game) {
