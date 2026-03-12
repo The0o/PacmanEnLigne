@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 
 
 import game.Game;
+import model.GameStateModel;
 import vue.ViewPacmanGame;
 
 public class GameClient {
@@ -61,7 +62,7 @@ public class GameClient {
                             if (viewGame != null) {
                             	//condition pour gerer partie en ligne et hors ligne
                             	GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
-                                viewGame.actualiser(etatDuJeu);
+                                viewGame.actualiserClient(etatDuJeu);
                             }
                         }
                     } catch(IOException e) { 
