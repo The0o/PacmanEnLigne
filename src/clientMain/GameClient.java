@@ -1,5 +1,6 @@
 package clientMain;
 
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,6 +8,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 import com.google.gson.Gson;
+
+
 
 import game.Game;
 import vue.ViewPacmanGame;
@@ -74,7 +77,41 @@ public class GameClient {
         }
     }
 
+public void getInputDirection() {
+        Scanner sc = new Scanner(System.in);
+        // On initialise avec une valeur par défaut pour éviter l'erreur de compilation
+        String direction = ""; 
+
+        System.out.print("Entrez une direction (z, s, q, d) : ");
+        
+        if (sc.hasNext()) { // On vérifie qu'il y a bien une entrée
+            char input = sc.next().toLowerCase().charAt(0); // toLowerCase() gère les majuscules
+            
+            switch (input) {
+                case 'z':
+                    direction = "NORTH";
+                    break;
+                case 's':
+                    direction = "SOUTH";
+                    break;
+                case 'q':
+                    direction = "WEST";
+                    break;
+                case 'd':
+                    direction = "EAST";
+                    break;
+                default:
+                    direction = "STATIONARY";
+                    break;
+            }
+        }
+        
+        server.send(direction);
+    }
+
+
     public void send(String obj) {
         server.write(obj);
+    
     }
 }
