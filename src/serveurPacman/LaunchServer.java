@@ -31,11 +31,44 @@ public class LaunchServer {
     public LaunchServer(int port) throws IOException {
         clientList = new CopyOnWriteArrayList<ConnectionToClient>();
         serverSocket = new ServerSocket(port);
+        
+        try {
+            vraiJeu = new PacmanGame(1000, "layouts/bigSearch_twoPacmans_oneGhost.lay", 0.0);
+            vraiJeu.init();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        int nombreJoueursAttendus = vraiJeu.getMaze().getInitNumberOfPacmans();
+        int indexPacmanActuel = 0;
 
         while(true) {
             try {
                 Socket s = serverSocket.accept();
-                clientList.add(new ConnectionToClient(s));
+                
+                Agent pacmanTrouve = null;
+                int pacmansVu = 0;
+                
+                //on associe le joueur a un pacman
+                for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
+                    if (vraiJeu.listeAgent.get(i) instanceof Pacman) {
+                        if (pacmansVu == indexPacmanActuel) {
+                            pacmanTrouve = vraiJeu.listeAgent.get(i);
+                            break;
+                        }
+                        pacmansVu++;
+                    }
+                }
+                
+                if (pacmanTrouve != null) {
+                    clientList.add(new ConnectionToClient(s, pacmanTrouve));
+                    indexPacmanActuel++;
+
+                    if (indexPacmanActuel == nombreJoueursAttendus && !partieDemarree) {
+                        demarrerPartie();
+                    }
+                }
+                
             } catch(IOException e) { 
                 e.printStackTrace();
             }
@@ -43,11 +76,6 @@ public class LaunchServer {
     }
     
     public void demarrerPartie() {
-    	//Modifier cette fonction pour qu'elle fonctionne dans tout les cas, pour
-    	//l'instant on force la diff, le layout, la vitesse, etc...
-        try {
-            vraiJeu = new PacmanGame(1000, "layouts/test.lay", 0.4);
-            vraiJeu.init();
             partieDemarree = true;
             
             Thread gameLoop = new Thread(() -> {
@@ -65,10 +93,6 @@ public class LaunchServer {
                 System.out.println("FIN PARTIE");
             });
             gameLoop.start();
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private GameStateModel pacmanGameToGameStateModel(PacmanGame vraiJeu) {
@@ -89,9 +113,11 @@ public class LaunchServer {
         BufferedReader in;
         PrintWriter out;
         Socket socket;
+        Agent pacman;
 
-        ConnectionToClient(Socket socket) throws IOException {
+        ConnectionToClient(Socket socket, Agent pacman) throws IOException {
             this.socket = socket;
+            this.pacman = pacman;
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -101,20 +127,11 @@ public class LaunchServer {
                         String line;
                         while((line = in.readLine()) != null) {
                             String texte = gson.fromJson(line, String.class);
-                            if (!partieDemarree) {
-                            	//tres basique pour l'instant, des que le serveur reçoit une donnee
-                            	//il lance la partie (donc pas de multijoueur pour le moment)
-                            	demarrerPartie();
-                            }
-                            else {
-                            	int direction = Integer.parseInt(texte);
-                            	
-                            	for (Agent agent : vraiJeu.listeAgent) {
-                                    if (agent instanceof Pacman && agent.getStrategie() instanceof StrategieInteractif) {
-                                    	//pas beau du tout, ça bouge tout les pacmans dans la meme direction, autrement
-                                    	//dit le multijoueur ca va etre nul -> A MODIFIER
-                                        ((StrategieInteractif) agent.getStrategie()).setLastActionDirection(direction);
-                                    }
+                            
+                            if (partieDemarree && pacman != null) {
+                                int direction = Integer.parseInt(texte);
+                                if (pacman.getStrategie() instanceof StrategieInteractif) {
+                                    ((StrategieInteractif) pacman.getStrategie()).setLastActionDirection(direction);
                                 }
                             }
                         }
