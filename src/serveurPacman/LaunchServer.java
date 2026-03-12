@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import designPattern.StrategieInteractif;
 import game.PacmanGame;
 import model.Agent;
+import model.Fantome;
 import model.GameStateModel;
 import model.Pacman;
 
@@ -73,7 +74,14 @@ public class LaunchServer {
     private GameStateModel pacmanGameToGameStateModel(PacmanGame vraiJeu) {
         GameStateModel stateModel = new GameStateModel();
         stateModel.setMaze(vraiJeu.getMaze());
-        stateModel.setListeAgent(vraiJeu.listeAgent);
+    	for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
+    		if (vraiJeu.listeAgent.get(i).getClass().equals(Fantome.class)) {
+    			stateModel.getPositionsFantomes().add(vraiJeu.listeAgent.get(i).getPosition());
+    		}
+    		else {
+    			stateModel.getPositionsPacmans().add(vraiJeu.listeAgent.get(i).getPosition());
+    		}
+    	}
         return stateModel;
     }
     
@@ -93,7 +101,6 @@ public class LaunchServer {
                         String line;
                         while((line = in.readLine()) != null) {
                             String texte = gson.fromJson(line, String.class);
-                            System.out.println("Donnees recu chef");
                             if (!partieDemarree) {
                             	//tres basique pour l'instant, des que le serveur reçoit une donnee
                             	//il lance la partie (donc pas de multijoueur pour le moment)
@@ -123,7 +130,7 @@ public class LaunchServer {
         }
 
         public void write(String message) {
-            out.println(gson.toJson(message));
+            out.println(message);
         }
     }
 

@@ -32,6 +32,7 @@ public class GameClient {
     
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame) throws IOException {
     	this.viewGame = viewGame;
+    	this.getInputDirection();
     	this.startClient(IPAdress, port);
     }
     
@@ -77,37 +78,27 @@ public class GameClient {
             out.println(gson.toJson(obj));
         }
     }
-
-public void getInputDirection() {
-        Scanner sc = new Scanner(System.in);
-        // On initialise avec une valeur par défaut pour éviter l'erreur de compilation
-        String direction = ""; 
-
-        System.out.print("Entrez une direction (z, s, q, d) : ");
-        
-        if (sc.hasNext()) { // On vérifie qu'il y a bien une entrée
-            char input = sc.next().toLowerCase().charAt(0); // toLowerCase() gère les majuscules
+    
+    private void getInputDirection() {
+        if (this.viewGame != null && this.viewGame.getJFrame() != null) {
             
-            switch (input) {
-                case 'z':
-                    direction = "NORTH";
-                    break;
-                case 's':
-                    direction = "SOUTH";
-                    break;
-                case 'q':
-                    direction = "WEST";
-                    break;
-                case 'd':
-                    direction = "EAST";
-                    break;
-                default:
-                    direction = "STATIONARY";
-                    break;
-            }
+            this.viewGame.getJFrame().addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyPressed(java.awt.event.KeyEvent e) {
+                    int key = e.getKeyCode();
+                    if (key == java.awt.event.KeyEvent.VK_Z || key == java.awt.event.KeyEvent.VK_UP) {
+                    	send("0");
+                    } else if (key == java.awt.event.KeyEvent.VK_S || key == java.awt.event.KeyEvent.VK_DOWN) {
+                        send("1");
+                    } else if (key == java.awt.event.KeyEvent.VK_D || key == java.awt.event.KeyEvent.VK_RIGHT) {
+                        send("2");
+                    } else if (key == java.awt.event.KeyEvent.VK_Q || key == java.awt.event.KeyEvent.VK_LEFT) {
+                        send("3");
+                    }
+                }
+            });
+            this.viewGame.getJFrame().requestFocus();
         }
-        
-        server.send(direction);
     }
 
 

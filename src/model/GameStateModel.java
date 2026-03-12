@@ -8,19 +8,25 @@ public class GameStateModel {
 	 * qui contient toutes les donnees utile a l'affichage
 	 */
 	private Maze maze;
-	private ArrayList<Agent> listeAgent = new ArrayList<>();
-
+	private ArrayList<PositionAgent> positionsPacmans = new ArrayList<>();
+	private ArrayList<PositionAgent> positionsFantomes = new ArrayList<>();
     
 	public void setMaze(Maze maze) {
 		this.maze = maze;
 	}
-	public void setListeAgent(ArrayList<Agent> listeAgent) {
-		this.listeAgent = listeAgent;
-	}
 	public Maze getMaze() {
 		return maze;
 	}
-	public ArrayList<Agent> getListeAgent() {
-		return listeAgent;
+	public ArrayList<PositionAgent> getPositionsPacmans() {
+		return positionsPacmans;
+	}
+	public void setPositionsPacmans(ArrayList<PositionAgent> positionsPacmans) {
+		this.positionsPacmans = positionsPacmans;
+	}
+	public ArrayList<PositionAgent> getPositionsFantomes() {
+		return positionsFantomes;
+	}
+	public void setPositionsFantomes(ArrayList<PositionAgent> positionsFantomes) {
+		this.positionsFantomes = positionsFantomes;
 	}
 }

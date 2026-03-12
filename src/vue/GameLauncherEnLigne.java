@@ -1,5 +1,7 @@
 package vue;
 import clientMain.GameClient;
+import game.Game;
+import game.PacmanGame;
 
 public class GameLauncherEnLigne extends GameLauncher {
     
@@ -18,7 +20,8 @@ public class GameLauncherEnLigne extends GameLauncher {
         }
         //WARNING : pour l'instant ça gere rien du tout, et encore moins la fonction en ligne.
         //Sur cette classe (le GameLauncher), il manque de pouvoir se connecter à plusieurs, faire des rooms, partie en ligne aleatoire, etc
-    	ViewPacmanGame viewGame = new ViewPacmanGame();
+        Game game = new PacmanGame(1000, "layouts/test.lay", 0.4);
+        ViewPacmanGame viewGame = new ViewPacmanGame(((PacmanGame) game).getMaze());
         GameClient gameClient = new GameClient("localhost", 9081, viewGame);
     }
 
