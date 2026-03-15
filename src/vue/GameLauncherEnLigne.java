@@ -13,14 +13,23 @@ public class GameLauncherEnLigne extends GameLauncher {
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
             return; // Le joueur a annulé
         }
-
-        // 2. Créer une vue initiale (le vrai labyrinthe sera envoyé par le serveur)
-        PacmanGame fakeGame = new PacmanGame(1000, "layouts/test.lay", 0.1);
+        
+        int difficulte = choixDifficulte.getSelectedIndex();
+        double diff = 0.4;
+        if (difficulte == 0) {
+            diff = 0.1;
+        } else if (difficulte == 2) {
+            diff = 0.7;
+        } else if (difficulte == 3) {
+            diff = 0.9;
+        }
+        
+        PacmanGame fakeGame = new PacmanGame(1000, "layouts/" + choixNiveau.getSelectedItem(), diff);
         ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
         
         // 3. Connecter le client au serveur avec l'IP saisie
         try {
-            new GameClient(ipServeur, 9081, viewGame);
+            new GameClient(ipServeur, 9081, viewGame, ((String) "layouts/" + choixNiveau.getSelectedItem()), diff);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Impossible de se connecter au serveur " + ipServeur);
         }

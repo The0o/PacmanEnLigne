@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 
 import game.Game;
 import model.GameStateModel;
+import model.InitialisationPartieModele;
 import vue.ViewPacmanGame;
 
 public class GameClient {
@@ -21,19 +22,12 @@ public class GameClient {
     private Gson gson = new Gson();
     private ViewPacmanGame viewGame;
     
-    public static void main(String[] args) {
-        try {
-            GameClient client = new GameClient(args[0], Integer.parseInt(args[1]));
-            //client.startClient(args[0], Integer.parseInt(args[1]));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame) throws IOException {
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte) throws IOException {
     	this.viewGame = viewGame;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
+    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte);
+        this.send(gson.toJson(jeuParamInit));
     }
     
     public GameClient(String IPAdress, int port) throws IOException {
@@ -75,7 +69,7 @@ public class GameClient {
         }
 
         private void write(String obj) {
-            out.println(gson.toJson(obj));
+        	out.println(obj);
         }
     }
     

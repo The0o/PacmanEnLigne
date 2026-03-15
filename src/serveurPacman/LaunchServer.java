@@ -14,6 +14,7 @@ import game.PacmanGame;
 import model.Agent;
 import model.Fantome;
 import model.GameStateModel;
+import model.InitialisationPartieModele;
 import model.Pacman;
 
 public class LaunchServer {
@@ -27,46 +28,23 @@ public class LaunchServer {
     private Gson gson = new Gson();
     private boolean partieDemarree = false;
     private PacmanGame vraiJeu;
+    private int nombreJoueursAttendus = 0;
 
     public LaunchServer(int port) throws IOException {
         clientList = new CopyOnWriteArrayList<ConnectionToClient>();
         serverSocket = new ServerSocket(port);
-        
-        try {
-            vraiJeu = new PacmanGame(1000, "layouts/test.lay", 0.1);
-            vraiJeu.init();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        int nombreJoueursAttendus = vraiJeu.getMaze().getInitNumberOfPacmans();
-        int indexPacmanActuel = 0;
 
         while(true) {
             try {
                 Socket s = serverSocket.accept();
                 
-                Agent pacmanTrouve = null;
-                int pacmansVu = 0;
-                
-                //on associe le joueur a un pacman
-                for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
-                    if (vraiJeu.listeAgent.get(i) instanceof Pacman) {
-                        if (pacmansVu == indexPacmanActuel) {
-                            pacmanTrouve = vraiJeu.listeAgent.get(i);
-                            break;
-                        }
-                        pacmansVu++;
-                    }
+                ConnectionToClient client = new ConnectionToClient(s);
+                clientList.add(client);
+                if (vraiJeu == null) {
+                	//Premier joueur
                 }
-                
-                if (pacmanTrouve != null) {
-                    clientList.add(new ConnectionToClient(s, pacmanTrouve));
-                    indexPacmanActuel++;
-
-                    if (indexPacmanActuel == nombreJoueursAttendus && !partieDemarree) {
-                        demarrerPartie();
-                    }
+                else {
+                	client.assignerPacman();
                 }
                 
             } catch(IOException e) { 
@@ -115,9 +93,8 @@ public class LaunchServer {
         Socket socket;
         Agent pacman;
 
-        ConnectionToClient(Socket socket, Agent pacman) throws IOException {
+        ConnectionToClient(Socket socket) throws IOException {
             this.socket = socket;
-            this.pacman = pacman;
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
@@ -125,14 +102,32 @@ public class LaunchServer {
                 public void run() {
                     try {
                         String line;
-                        while((line = in.readLine()) != null) {
-                            String texte = gson.fromJson(line, String.class);
-                            
-                            if (partieDemarree && pacman != null) {
-                                int direction = Integer.parseInt(texte);
-                                if (pacman.getStrategie() instanceof StrategieInteractif) {
-                                    ((StrategieInteractif) pacman.getStrategie()).setLastActionDirection(direction);
+                        while((line = in.readLine()) != null) {                            
+                            /*
+                             * Deux cas ou on recoit les donnees d'un client :
+                             * Soit le client envoie des donnees pour initialiser une partie avec le niveau et la difficulte
+                             * Soit le client envoie la donnees du mouvement qu'il realise sur une partie en cours
+                             */
+                            if (!partieDemarree && vraiJeu == null) {
+                                try {
+                                    InitialisationPartieModele init = gson.fromJson(line, InitialisationPartieModele.class);
+                                    vraiJeu = new PacmanGame(1000, init.getChoixNiveau(), init.getDifficulte());
+                                    vraiJeu.init();
+                                    nombreJoueursAttendus = vraiJeu.getMaze().getInitNumberOfPacmans();
+                                    assignerPacman();
+;                                    
+                                } catch (Exception e) {
                                 }
+                            } else if (partieDemarree && pacman != null) {
+                            	try {
+	                                int direction = Integer.parseInt(line);
+	                            	System.out.println(direction);
+	                                if (pacman.getStrategie() instanceof StrategieInteractif) {
+	                                    ((StrategieInteractif) pacman.getStrategie()).setLastActionDirection(direction);
+	                                }
+                            	} catch (NumberFormatException e) {
+                            		
+                            	}
                             }
                         }
                     } catch(IOException e) { 
@@ -146,7 +141,31 @@ public class LaunchServer {
             read.start();
         }
 
-        public void write(String message) {
+        public void assignerPacman() {
+			int pacmanAssignes = 0;
+        	for (int i = 0; i < clientList.size(); i++) {
+        		ConnectionToClient client = clientList.get(i);
+        		if (client.pacman != null) {
+					pacmanAssignes++;
+        		}
+        	}
+    		int pacmansVu = 0;
+    		for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
+                if (vraiJeu.listeAgent.get(i) instanceof Pacman) {
+                    if (pacmansVu == pacmanAssignes) {
+                        this.pacman = vraiJeu.listeAgent.get(i);
+                        break;
+                    }
+                    pacmansVu++;
+                }
+    		}
+            
+    		if (pacmanAssignes + 1 == nombreJoueursAttendus && !partieDemarree) {
+                demarrerPartie();
+            }
+		}
+
+		public void write(String message) {
             out.println(message);
         }
     }
