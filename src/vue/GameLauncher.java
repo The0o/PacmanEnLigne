@@ -16,11 +16,14 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 
 import clientMain.GameClient;
 import controller.ControllerPacmanGame;
@@ -83,6 +86,50 @@ public class GameLauncher {
         choixDifficulte.setMaximumSize(new Dimension(300, 40));
         choixDifficulte.setSelectedIndex(1);
         backgroundLabel.add(choixDifficulte);
+        
+        //-------------CHOIX DU MODE DE JEU-------------
+        JPanel modePanel = new JPanel();
+        modePanel.setLayout(new BoxLayout(modePanel, BoxLayout.X_AXIS));
+        modePanel.setOpaque(false);
+        
+        JRadioButton radioSolo = new JRadioButton("Solo");
+        radioSolo.setSelected(true);
+        radioSolo.setOpaque(false);
+        radioSolo.setForeground(java.awt.Color.WHITE);
+        radioSolo.setFont(new Font("Monospaced", Font.BOLD, 14));
+
+        JRadioButton radioMulti = new JRadioButton("Multijoueur");
+        radioMulti.setOpaque(false);
+        radioMulti.setForeground(java.awt.Color.WHITE);
+        radioMulti.setFont(new Font("Monospaced", Font.BOLD, 14));
+
+        ButtonGroup groupeMode = new ButtonGroup();
+        groupeMode.add(radioSolo);
+        groupeMode.add(radioMulti);
+
+        JButton creerRoomBtn = new JButton("Creer une room");
+        creerRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
+        creerRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        creerRoomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame roomFrame = new JFrame("Nouvelle room serveur");
+                roomFrame.setSize(400, 300);
+                roomFrame.setLocationRelativeTo(null);
+
+                roomFrame.setVisible(true);
+            }
+        });
+
+        modePanel.add(radioSolo);
+        modePanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        modePanel.add(radioMulti);
+        modePanel.add(Box.createRigidArea(new Dimension(30, 0)));
+        modePanel.add(creerRoomBtn);
+
+        backgroundLabel.add(modePanel);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         //-------------BOUTON COMMENCER-------------
         JButton startButton = new JButton("COMMENCER");
