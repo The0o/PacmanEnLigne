@@ -1,5 +1,6 @@
 package vue;
 import javax.swing.JOptionPane;
+
 import clientMain.GameClient;
 import game.PacmanGame;
 
@@ -24,12 +25,12 @@ public class GameLauncherEnLigne extends GameLauncher {
             diff = 0.9;
         }
         
-        PacmanGame fakeGame = new PacmanGame(1000, "layouts/" + choixNiveau.getSelectedItem(), diff);
+        PacmanGame fakeGame = new PacmanGame(1000, "src/layouts/" + choixNiveau.getSelectedItem(), diff);
         ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
         
         // 3. Connecter le client au serveur avec l'IP saisie
         try {
-            new GameClient(ipServeur, 9081, viewGame, ((String) "layouts/" + choixNiveau.getSelectedItem()), diff);
+            new GameClient(ipServeur, 9081, viewGame, ((String) "src/layouts/" + choixNiveau.getSelectedItem()), diff);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Impossible de se connecter au serveur " + ipServeur);
         }

@@ -1,4 +1,3 @@
-import vue.GameLauncher;
 import vue.GameLauncherEnLigne;
 
 public class TestEnLigne {
