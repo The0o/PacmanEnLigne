@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -39,7 +40,7 @@ public class GameLauncher {
         jFrame.setTitle("Pacman");
 
         //-------------IMAGE BACKGROUND---------------
-        ImageIcon image = new ImageIcon("image/pacmanImage.jpg");
+        ImageIcon image = loadImageIcon("/image/pacmanImage.jpg", "src/image/pacmanImage.jpg", "image/pacmanImage.jpg");
         JLabel backgroundLabel;
         if (image.getIconWidth() != -1) {
             backgroundLabel = new JLabel(image);
@@ -195,6 +196,22 @@ public class GameLauncher {
         launchMusic();
     }
 
+    private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
+        URL imageUrl = getClass().getResource(resourcePath);
+        if (imageUrl != null) {
+            return new ImageIcon(imageUrl);
+        }
+
+        for (String fallbackPath : fallbackPaths) {
+            File imageFile = new File(fallbackPath);
+            if (imageFile.exists()) {
+                return new ImageIcon(fallbackPath);
+            }
+        }
+
+        return new ImageIcon();
+    }
+
     public void launchMusic() {
         File musicPath = new File("music/audio.wav");
         AudioInputStream audioInputStream;
@@ -213,7 +230,7 @@ public class GameLauncher {
     }
 
     public void chargerNiveaux() {
-        File folder = new File("layouts");
+        File folder = new File("src/layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
@@ -226,7 +243,7 @@ public class GameLauncher {
 
     public void lancerJeu() throws Exception {
         String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "layouts/" + choixFichier;
+        String path = "src/layouts/" + choixFichier;
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = 0.4;
