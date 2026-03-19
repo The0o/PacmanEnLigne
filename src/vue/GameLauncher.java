@@ -1,5 +1,10 @@
 package vue;
 
+import java.awt.Desktop;
+import java.net.URI;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -46,9 +51,9 @@ public class GameLauncher {
     protected JComboBox<String> choixNiveau;
     protected JComboBox<String> choixDifficulte;
     public static Clip clip; 
-    private static final String LOGIN_API_URL = "http://localhost:8080/serveurWeb/api/auth/login";
+    private static final String LOGIN_API_URL = "http://localhost:8080/test/api/auth/login";
     
-    // On rend la fenêtre et le fond accessibles aux autres méthodes
+    // On rend la fenêtre et le fond accessibles aux autres méthodes  http://localhost:8080/test/TestDBServlet
     protected JFrame jFrame;
     protected JLabel backgroundLabel;
     protected String sessionCookie;
@@ -107,6 +112,21 @@ public class GameLauncher {
         loginButton.setFont(new Font("Monospaced", Font.BOLD, 18));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        
+     // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---
+        JLabel creerCompteLabel = new JLabel("<html><a href=\"\">Créer un compte</a></html>");
+        creerCompteLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        creerCompteLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Curseur "main"
+        creerCompteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+     // Ajout de l'événement au clic
+        creerCompteLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                afficherEcranInscription(); // On appelle la nouvelle méthode pour afficher l'écran d'inscription
+            }
+        });
 
         loginButton.addActionListener(new ActionListener() {
             @Override
@@ -134,11 +154,131 @@ public class GameLauncher {
         backgroundLabel.add(passField);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
         backgroundLabel.add(loginButton);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15))); // Espace avant le lien
+        backgroundLabel.add(creerCompteLabel);
 
         // Rafraîchissement de la fenêtre
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
+    
+ // --- NOUVELLE MÉTHODE : AFFICHER LA CRÉATION DE COMPTE ---
+    public void afficherEcranInscription() {
+        backgroundLabel.removeAll(); // Vide l'écran
+
+        JLabel titre = new JLabel("INSCRIPTION");
+        titre.setFont(new Font("Monospaced", Font.BOLD, 30));
+        titre.setForeground(java.awt.Color.WHITE);
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        JLabel usernameLabel = new JLabel("Username");
+        usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+        usernameLabel.setForeground(java.awt.Color.WHITE);
+        usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JTextField usernameField = new JTextField();
+        usernameField.setMaximumSize(new Dimension(250, 30));
+
+        JLabel passLabel = new JLabel("Mot de passe :");
+        passLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+        passLabel.setForeground(java.awt.Color.WHITE);
+        passLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JPasswordField passField = new JPasswordField();
+        passField.setMaximumSize(new Dimension(250, 30));
+
+        JButton registerButton = new JButton("S'INSCRIRE");
+        registerButton.setFont(new Font("Monospaced", Font.BOLD, 18));
+        registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // --- LIEN POUR RETOURNER À LA CONNEXION ---
+        JLabel retourConnexionLabel = new JLabel("<html><a href=\"\">Retour à la connexion</a></html>");
+        retourConnexionLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        retourConnexionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
+        retourConnexionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        retourConnexionLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                afficherEcranConnexion(); // Retour à l'écran de connexion
+            }
+        });
+
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String username = usernameField.getText().trim();
+                String password = new String(passField.getPassword());
+
+                if (inscrireUtilisateur(username, password)) {
+                    JOptionPane.showMessageDialog(jFrame, "Compte créé avec succès ! Vous pouvez maintenant vous connecter.", "Succès", JOptionPane.INFORMATION_MESSAGE);
+                    afficherEcranConnexion(); // Retour à la connexion après succès
+                } else {
+                    JOptionPane.showMessageDialog(jFrame, "Erreur lors de la création du compte. Vérifiez que le serveur est lancé.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Ajout des éléments avec des espaces
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 50)));
+        backgroundLabel.add(titre);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+        backgroundLabel.add(usernameLabel);
+        backgroundLabel.add(usernameField);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15)));
+        backgroundLabel.add(passLabel);
+        backgroundLabel.add(passField);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+        backgroundLabel.add(registerButton);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15))); 
+        backgroundLabel.add(retourConnexionLabel);
+
+        // Rafraîchissement de la fenêtre
+        backgroundLabel.revalidate();
+        backgroundLabel.repaint();
+    }
+    
+ // --- NOUVELLE MÉTHODE : REQUÊTE HTTP CRÉATION DE COMPTE ---
+    private boolean inscrireUtilisateur(String username, String password) {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            return false;
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            // URL de votre API d'inscription
+            URL url = new URL("http://localhost:8080/test/api/users");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            // Construction du corps JSON
+            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
+            
+            try (OutputStream outputStream = connection.getOutputStream()) {
+                outputStream.write(requestBody.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = connection.getResponseCode();
+
+            // Si le code de réponse est 200 (OK) ou 201 (Created)
+            if (responseCode >= 200 && responseCode < 300) {
+                return true;
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+        return false;
+    }
+    
 
     // Méthode de vérification
     private boolean verifierIdentifiants(String username, String password) {
@@ -146,7 +286,7 @@ public class GameLauncher {
             return false;
         }
 
-        HttpURLConnection connection = null;
+        HttpURLConnection connection = null;	
         try {
             URL url = new URL(LOGIN_API_URL);
             connection = (HttpURLConnection) url.openConnection();
@@ -396,7 +536,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("src/music/audio.wav");
+        File musicPath = new File("music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
@@ -413,7 +553,7 @@ public class GameLauncher {
     }
 
     public void chargerNiveaux() {
-        File folder = new File("src/layouts");
+        File folder = new File("layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
@@ -426,7 +566,7 @@ public class GameLauncher {
 
     public void lancerJeu() throws Exception {
         String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "src/layouts/" + choixFichier;
+        String path = "layouts/" + choixFichier;
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = 0.4;
