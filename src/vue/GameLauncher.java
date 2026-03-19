@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -16,6 +17,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -170,6 +172,49 @@ public class GameLauncher {
         choixDifficulte.setMaximumSize(new Dimension(300, 40));
         choixDifficulte.setSelectedIndex(1);
         backgroundLabel.add(choixDifficulte);
+        
+        //-------------CHOIX DU MODE DE JEU-------------
+        JPanel modePanel = new JPanel();
+        modePanel.setLayout(new BoxLayout(modePanel, BoxLayout.X_AXIS));
+        modePanel.setOpaque(false);
+        
+        JRadioButton radioSolo = new JRadioButton("Solo");
+        radioSolo.setSelected(true);
+        radioSolo.setOpaque(false);
+        radioSolo.setForeground(java.awt.Color.WHITE);
+        radioSolo.setFont(new Font("Monospaced", Font.BOLD, 14));
+
+        JRadioButton radioMulti = new JRadioButton("Multijoueur");
+        radioMulti.setOpaque(false);
+        radioMulti.setForeground(java.awt.Color.WHITE);
+        radioMulti.setFont(new Font("Monospaced", Font.BOLD, 14));
+
+        ButtonGroup groupeMode = new ButtonGroup();
+        groupeMode.add(radioSolo);
+        groupeMode.add(radioMulti);
+
+        JButton creerRoomBtn = new JButton("Creer une room");
+        creerRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
+        creerRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        creerRoomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame roomFrame = new JFrame("Nouvelle room serveur");
+                roomFrame.setSize(400, 300);
+                roomFrame.setLocationRelativeTo(null);
+
+                roomFrame.setVisible(true);
+            }
+        });
+
+        modePanel.add(radioSolo);
+        modePanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        modePanel.add(radioMulti);
+        modePanel.add(Box.createRigidArea(new Dimension(30, 0)));
+        modePanel.add(creerRoomBtn);
+
+        backgroundLabel.add(modePanel);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         //-------------BOUTON COMMENCER-------------
@@ -191,13 +236,22 @@ public class GameLauncher {
             }
         });
         
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        //-------------BOUTON EDITER-------------
+        
+        //-------------BOUTON VOIR STATS / EDITER-------------
+        JPanel voirStatsEditer = new JPanel();
+        voirStatsEditer.setLayout(new BoxLayout(voirStatsEditer, BoxLayout.X_AXIS));
+        voirStatsEditer.setOpaque(false);
+
         JButton editerBouton = new JButton("CREER NIVEAU");
         editerBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
         editerBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         editerBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JButton voirStatsBouton = new JButton("VOIR STATS");
+        voirStatsBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
+        voirStatsBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        voirStatsBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         editerBouton.addActionListener(new ActionListener() {
             @Override
@@ -206,11 +260,58 @@ public class GameLauncher {
             }
         });
 
-        backgroundLabel.add(editerBouton);
+        voirStatsBouton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new StatistiquesWindow();
+            }
+        });
+
+        voirStatsEditer.add(voirStatsBouton);
+        voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
+        voirStatsEditer.add(editerBouton);
+
+        backgroundLabel.add(voirStatsEditer);
+
+        jFrame.pack();
+        jFrame.setLocationRelativeTo(null);
+        jFrame.setVisible(true);
 
         // Indispensable pour demander à Java de redessiner les nouveaux boutons
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
+    }
+
+    private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
+        URL imageUrl = getClass().getResource(resourcePath);
+        if (imageUrl != null) {
+            return new ImageIcon(imageUrl);
+        }
+
+        for (String fallbackPath : fallbackPaths) {
+            File imageFile = new File(fallbackPath);
+            if (imageFile.exists()) {
+                return new ImageIcon(fallbackPath);
+            }
+        }
+
+        return new ImageIcon();
+    }
+
+    private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
+        URL imageUrl = getClass().getResource(resourcePath);
+        if (imageUrl != null) {
+            return new ImageIcon(imageUrl);
+        }
+
+        for (String fallbackPath : fallbackPaths) {
+            File imageFile = new File(fallbackPath);
+            if (imageFile.exists()) {
+                return new ImageIcon(fallbackPath);
+            }
+        }
+
+        return new ImageIcon();
     }
 
     public void launchMusic() {
