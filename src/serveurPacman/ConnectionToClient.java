@@ -45,7 +45,6 @@ public class ConnectionToClient {
                                 InitialisationPartieModele init = gson.fromJson(line, InitialisationPartieModele.class);
                                 serveur.assignerClientASession(ConnectionToClient.this, init);
                                 isInitialized = true;
-                                assignerPacman();
                             } catch (Exception e) {
                             }
                         } 
