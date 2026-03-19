@@ -5,9 +5,15 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public final class Db {
-	private static final String URL  = "jdbc:postgresql://localhost:5433/testdb";
-	private static final String USER = "testuser";
-	private static final String PASS = "testpass";
+	//local docker
+//	private static final String URL  = "jdbc:postgresql://localhost:5433/testdb";
+//	private static final String USER = "testuser";
+//	private static final String PASS = "testpass";
+
+//en ligne supabase
+	private static final String URL  = "jdbc:postgresql://aws-1-eu-west-1.pooler.supabase.com:6543/postgres?user=postgres.prvshcoswpquvihbdhov&password=ProjetPacman26";
+	private static final String USER = "postgres.prvshcoswpquvihbdhov";
+	private static final String PASS = "ProjetPacman26";
 
   static {
     try {

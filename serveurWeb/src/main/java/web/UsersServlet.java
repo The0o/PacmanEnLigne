@@ -76,6 +76,7 @@ public class UsersServlet extends HttpServlet {
 	      JsonUtil.writeJson(resp, 201, out);
 
 	    } catch (SQLException e) {
+	     e.printStackTrace();
 	      if ("23505".equals(e.getSQLState())) {
 	        JsonUtil.writeJson(resp, 409, error("username already exists"));
 	      } else {
