@@ -24,7 +24,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import controller.ControllerPacmanGame;
@@ -280,22 +282,6 @@ public class GameLauncher {
         // Indispensable pour demander à Java de redessiner les nouveaux boutons
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
-    }
-
-    private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
-        URL imageUrl = getClass().getResource(resourcePath);
-        if (imageUrl != null) {
-            return new ImageIcon(imageUrl);
-        }
-
-        for (String fallbackPath : fallbackPaths) {
-            File imageFile = new File(fallbackPath);
-            if (imageFile.exists()) {
-                return new ImageIcon(fallbackPath);
-            }
-        }
-
-        return new ImageIcon();
     }
 
     private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
