@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 
 
 import game.Game;
+import game.PacmanGame;
 import model.GameStateModel;
 import model.InitialisationPartieModele;
 import vue.ViewPacmanGame;
@@ -27,6 +28,14 @@ public class GameClient {
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
     	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte);
+        this.send(gson.toJson(jeuParamInit));
+    }
+    
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom) throws IOException {
+    	this.viewGame = viewGame;
+    	this.getInputDirection();
+    	this.startClient(IPAdress, port);
+    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, roomId, isCreation, isRandom);
         this.send(gson.toJson(jeuParamInit));
     }
     
@@ -54,8 +63,22 @@ public class GameClient {
                     try {
                         String line;
                         while((line = in.readLine()) != null) {
-                            if (viewGame != null) {
-                            	//condition pour gerer partie en ligne et hors ligne
+                            
+                            if (line.contains("choixNiveau")) {
+                                //Cas on on attend dans un room
+                                if (viewGame == null) {
+                                    try {
+                                        InitialisationPartieModele paramsServeur = gson.fromJson(line, InitialisationPartieModele.class);
+                                        PacmanGame fakeGame = new PacmanGame(1000, paramsServeur.getChoixNiveau(), paramsServeur.getDifficulte());
+                                        viewGame = new ViewPacmanGame(fakeGame.getMaze());
+                                        getInputDirection();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            } 
+                            else if (viewGame != null) {
+                            	//Cas classique ou onb recoit l'etat du jeu
                             	GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 viewGame.actualiserClient(etatDuJeu);
                             }

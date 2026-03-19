@@ -44,12 +44,15 @@ import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import clientMain.GameClient;
 import controller.ControllerPacmanGame;
+import game.PacmanGame;
 
 public class GameLauncher {
 
     protected JComboBox<String> choixNiveau;
     protected JComboBox<String> choixDifficulte;
+    protected JTextField roomIdField;
     public static Clip clip; 
     private static final String LOGIN_API_URL = "http://localhost:8080/test/api/auth/login";
     
@@ -437,11 +440,23 @@ public class GameLauncher {
         creerRoomBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFrame roomFrame = new JFrame("Nouvelle room serveur");
-                roomFrame.setSize(400, 300);
-                roomFrame.setLocationRelativeTo(null);
+                actionCreerRoom(); 
+            }
+        });
 
-                roomFrame.setVisible(true);
+        roomIdField = new JTextField();
+        roomIdField.setMaximumSize(new Dimension(80, 25));
+        roomIdField.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        roomIdField.setToolTipText("ID Room");
+
+        JButton rejoindreRoomBtn = new JButton("Rejoindre");
+        rejoindreRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
+        rejoindreRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        rejoindreRoomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionRejoindreRoom();
             }
         });
 
@@ -450,6 +465,10 @@ public class GameLauncher {
         modePanel.add(radioMulti);
         modePanel.add(Box.createRigidArea(new Dimension(30, 0)));
         modePanel.add(creerRoomBtn);
+        modePanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        modePanel.add(roomIdField);
+        modePanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        modePanel.add(rejoindreRoomBtn);
 
         backgroundLabel.add(modePanel);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -536,7 +555,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("music/audio.wav");
+        File musicPath = new File("src/music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
@@ -553,7 +572,7 @@ public class GameLauncher {
     }
 
     public void chargerNiveaux() {
-        File folder = new File("layouts");
+        File folder = new File("src/layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
@@ -564,19 +583,65 @@ public class GameLauncher {
         }
     }
 
-    public void lancerJeu() throws Exception {
-        String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "layouts/" + choixFichier;
+    protected void actionCreerRoom() {
+        String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
+        if (ipServeur == null || ipServeur.trim().isEmpty()) {
+            return;
+        }
+
+        String roomId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         int difficulte = choixDifficulte.getSelectedIndex();
-        double diff = 0.4;
-        if (difficulte == 0) {
-            diff = 0.1;
-        } else if (difficulte == 2) {
-            diff = 0.7;
-        } else if (difficulte == 3) {
-            diff = 0.9;
+        double diff = getValeurDifficulte(difficulte);
+        String niveau = "src/layouts/" + choixNiveau.getSelectedItem();
+
+        try {
+            PacmanGame fakeGame = new PacmanGame(1000, niveau, diff);
+            ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
+            new GameClient(ipServeur, 9081, viewGame, niveau, diff, roomId, true, false);
+            new RoomWindow(roomId);
+            jFrame.dispose(); 
+            
+        } catch (Exception e) {
         }
+    }
+
+    protected void actionRejoindreRoom() {
+        String roomId = roomIdField.getText().trim();
+
+        String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
+        if (ipServeur == null || ipServeur.trim().isEmpty()) {
+            return; 
+        }
+
+        try {
+            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false);
+            jFrame.dispose();
+            
+        } catch (Exception e) {
+        }
+    }
+
+    public void lancerJeu() throws Exception {
+        String choixFichier = (String) choixNiveau.getSelectedItem();
+        String path = "src/layouts/" + choixFichier;
+
+        int difficulte = choixDifficulte.getSelectedIndex();
+        double diff = getValeurDifficulte(difficulte);
+        
         new ControllerPacmanGame(path, diff);
+    }
+
+    protected double getValeurDifficulte(int index) {
+        if (index == 0) {
+        	return 0.1;
+        }
+        else if (index == 2) {
+        	return 0.7;
+        }
+        else if (index == 3) {
+        	return 0.9;
+        }
+        return 0.4;
     }
 }

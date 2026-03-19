@@ -45,6 +45,9 @@ public class ConnectionToClient {
                                 InitialisationPartieModele init = gson.fromJson(line, InitialisationPartieModele.class);
                                 serveur.assignerClientASession(ConnectionToClient.this, init);
                                 isInitialized = true;
+                                InitialisationPartieModele params = new InitialisationPartieModele(session.getNiveau(), session.getDifficulte(), session.getRoomId(), false, session.isRandom());
+                                //on vient re-initialiser pour gerer le cas ou on rejoint une room avec une id, mais qu'on avait pas mis les meme params (parce que l'id est le meme)
+                                write(gson.toJson(params));
                             } catch (Exception e) {
                             }
                         } 

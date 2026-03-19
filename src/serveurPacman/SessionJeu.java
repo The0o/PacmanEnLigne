@@ -7,18 +7,24 @@ import model.Fantome;
 import model.GameStateModel;
 import model.InitialisationPartieModele;
 
-public class SessionJeu {private CopyOnWriteArrayList<ConnectionToClient> clientList;
-private boolean partieDemarree = false;
-private PacmanGame vraiJeu;
-private int nombreJoueursAttendus;
-private String niveau;
-private double difficulte;
-private Gson gson = new Gson();
+public class SessionJeu {
+    
+    private CopyOnWriteArrayList<ConnectionToClient> clientList;
+    private boolean partieDemarree = false;
+    private PacmanGame vraiJeu;
+    private int nombreJoueursAttendus;
+    private String niveau;
+    private double difficulte;
+    private String roomId; 
+    private boolean isRandom;
+    private Gson gson = new Gson();
 
     public SessionJeu(InitialisationPartieModele init) throws Exception {
         this.clientList = new CopyOnWriteArrayList<>();
         this.niveau = init.getChoixNiveau();
         this.difficulte = init.getDifficulte();
+        this.roomId = init.getRoomId(); 
+        this.isRandom = init.isRandom();
         
         this.vraiJeu = new PacmanGame(1000, this.niveau, this.difficulte);
         this.vraiJeu.init();
@@ -88,6 +94,14 @@ private Gson gson = new Gson();
 	public double getDifficulte() {
 		return difficulte;
 	}
+
+    public String getRoomId() {
+        return roomId;
+    }
+    
+    public boolean isRandom() {
+        return isRandom;
+    }
 
 	public CopyOnWriteArrayList<ConnectionToClient> getClientList() {
 		return clientList;
