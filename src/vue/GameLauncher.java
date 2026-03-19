@@ -6,9 +6,19 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -36,17 +46,20 @@ public class GameLauncher {
     protected JComboBox<String> choixNiveau;
     protected JComboBox<String> choixDifficulte;
     public static Clip clip; 
+    private static final String LOGIN_API_URL = "http://localhost:8080/serveurWeb/api/auth/login";
     
     // On rend la fenêtre et le fond accessibles aux autres méthodes
     protected JFrame jFrame;
     protected JLabel backgroundLabel;
+    protected String sessionCookie;
+    protected String usernameConnecte;
 
     public GameLauncher() {
         jFrame = new JFrame();
         jFrame.setTitle("Pacman");
 
         //-------------IMAGE BACKGROUND---------------
-        ImageIcon image = new ImageIcon("src/image/pacmanImage.jpg");
+        ImageIcon image = loadImageIcon("/image/pacmanImage.jpg", "src/image/pacmanImage.jpg", "image/pacmanImage.jpg");
         if (image.getIconWidth() != -1) {
             backgroundLabel = new JLabel(image);
         }
@@ -76,12 +89,12 @@ public class GameLauncher {
         titre.setForeground(java.awt.Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        JLabel emailLabel = new JLabel("Email :");
-        emailLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
-        emailLabel.setForeground(java.awt.Color.WHITE);
-        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField emailField = new JTextField();
-        emailField.setMaximumSize(new Dimension(250, 30));
+        JLabel usernameLabel = new JLabel("Username :");
+        usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
+        usernameLabel.setForeground(java.awt.Color.WHITE);
+        usernameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JTextField usernameField = new JTextField();
+        usernameField.setMaximumSize(new Dimension(250, 30));
 
         JLabel passLabel = new JLabel("Mot de passe :");
         passLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
@@ -98,14 +111,14 @@ public class GameLauncher {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String email = emailField.getText();
+                String username = usernameField.getText().trim();
                 String password = new String(passField.getPassword());
 
-                if (verifierIdentifiants(email, password)) {
+                if (verifierIdentifiants(username, password)) {
                     // Si OK, on charge le menu principal à la place
                     afficherMenuPrincipal(); 
                 } else {
-                    JOptionPane.showMessageDialog(jFrame, "Email ou mot de passe incorrect.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(jFrame, "Connexion echouee. Verifiez le username, le mot de passe, ou le serveur web.", "Erreur", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -114,8 +127,8 @@ public class GameLauncher {
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 50)));
         backgroundLabel.add(titre);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
-        backgroundLabel.add(emailLabel);
-        backgroundLabel.add(emailField);
+        backgroundLabel.add(usernameLabel);
+        backgroundLabel.add(usernameField);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15)));
         backgroundLabel.add(passLabel);
         backgroundLabel.add(passField);
@@ -128,8 +141,90 @@ public class GameLauncher {
     }
 
     // Méthode de vérification
-    private boolean verifierIdentifiants(String email, String password) {
-        return email.equals("joueur@pacman.fr") && password.equals("123456");
+    private boolean verifierIdentifiants(String username, String password) {
+        if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+            return false;
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(LOGIN_API_URL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
+            try (OutputStream outputStream = connection.getOutputStream()) {
+                outputStream.write(requestBody.getBytes(StandardCharsets.UTF_8));
+            }
+
+            int responseCode = connection.getResponseCode();
+            String responseBody = readResponseBody(responseCode >= 200 && responseCode < 300
+                ? connection.getInputStream()
+                : connection.getErrorStream());
+
+            if (responseCode >= 200 && responseCode < 300 && responseBody.contains("\"ok\":true")) {
+                sessionCookie = extractSessionCookie(connection.getHeaderFields());
+                usernameConnecte = extractJsonValue(responseBody, "username");
+                return true;
+            }
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+        return false;
+    }
+
+    private String readResponseBody(InputStream inputStream) throws IOException {
+        if (inputStream == null) {
+            return "";
+        }
+
+        StringBuilder responseBuilder = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                responseBuilder.append(line);
+            }
+        }
+        return responseBuilder.toString();
+    }
+
+    private String extractSessionCookie(Map<String, List<String>> headers) {
+        List<String> setCookieHeaders = headers.get("Set-Cookie");
+        if (setCookieHeaders == null) {
+            return null;
+        }
+
+        for (String header : setCookieHeaders) {
+            if (header.startsWith("JSESSIONID=")) {
+                int endIndex = header.indexOf(';');
+                return endIndex >= 0 ? header.substring(0, endIndex) : header;
+            }
+        }
+
+        return null;
+    }
+
+    private String extractJsonValue(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
+    private String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     // --- MÉTHODE ADAPTÉE : AFFICHER LE MENU PRINCIPAL ---
