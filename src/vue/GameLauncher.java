@@ -150,12 +150,23 @@ public class GameLauncher {
                 }
             }
         });
+        
 
-        //-------------BOUTON EDITER-------------
+        
+        //-------------BOUTON VOIR STATS / EDITER-------------
+        JPanel voirStatsEditer = new JPanel();
+        voirStatsEditer.setLayout(new BoxLayout(voirStatsEditer, BoxLayout.X_AXIS));
+        voirStatsEditer.setOpaque(false);
+
         JButton editerBouton = new JButton("CREER NIVEAU");
         editerBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
         editerBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         editerBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        JButton voirStatsBouton = new JButton("VOIR STATS");
+        voirStatsBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
+        voirStatsBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        voirStatsBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         editerBouton.addActionListener(new ActionListener() {
             @Override
@@ -164,7 +175,19 @@ public class GameLauncher {
             }
         });
 
-        backgroundLabel.add(editerBouton);
+        voirStatsBouton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new StatistiquesWindow();
+            }
+        });
+
+        voirStatsEditer.add(voirStatsBouton);
+        voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
+        voirStatsEditer.add(editerBouton);
+
+        backgroundLabel.add(voirStatsEditer);
+
         jFrame.pack();
         jFrame.setLocationRelativeTo(null);
         jFrame.setVisible(true);
