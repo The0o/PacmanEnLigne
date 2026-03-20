@@ -125,8 +125,8 @@ public class GameLauncher {
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         
-     // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---
-        JLabel creerCompteLabel = new JLabel("<html><a href=\"\">Créer un compte</a></html>");
+     // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---// On ajoute également style=\"color: white;\" ici
+        JLabel creerCompteLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Retour à la connexion</a></html>");
         creerCompteLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         creerCompteLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Curseur "main"
         creerCompteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -204,11 +204,12 @@ public class GameLauncher {
         registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         // --- LIEN POUR RETOURNER À LA CONNEXION ---
-        JLabel retourConnexionLabel = new JLabel("<html><a href=\"\">Retour à la connexion</a></html>");
+        JLabel retourConnexionLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Retour à la connexion</a></html>");
         retourConnexionLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         retourConnexionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
         retourConnexionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         retourConnexionLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
         
         retourConnexionLabel.addMouseListener(new MouseAdapter() {
             @Override
@@ -557,7 +558,7 @@ public class GameLauncher {
         voirStatsBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new StatistiquesWindow();
+            	new StatistiquesWindow(usernameConnecte, sessionCookie);
             }
         });
 
@@ -575,6 +576,9 @@ public class GameLauncher {
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
+    	
+
+    
 
     private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
         URL imageUrl = getClass().getResource(resourcePath);
@@ -593,7 +597,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("src/music/audio.wav");
+        File musicPath = new File("music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
