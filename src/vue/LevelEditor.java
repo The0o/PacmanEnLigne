@@ -120,7 +120,7 @@ public class LevelEditor {
         }
 
         String name = JOptionPane.showInputDialog("Nom du fichier (sans .lay)");
-        try (FileWriter writer = new FileWriter("layouts/" + name + ".lay")) {
+        try (FileWriter writer = new FileWriter("src/layouts/" + name + ".lay")) {
             for (int y = 0; y < lignes; y++) {
                 for (int x = 0; x < colonnes; x++) {
                     char c = (char) gridBoutons[y][x].getClientProperty("c");
