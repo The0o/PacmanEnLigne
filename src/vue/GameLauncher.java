@@ -126,7 +126,7 @@ public class GameLauncher {
         
         
      // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---// On ajoute également style=\"color: white;\" ici
-        JLabel creerCompteLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Retour à la connexion</a></html>");
+        JLabel creerCompteLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Créer un compte</a></html>");
         creerCompteLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         creerCompteLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Curseur "main"
         creerCompteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -547,6 +547,11 @@ public class GameLauncher {
         voirStatsBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
         voirStatsBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         voirStatsBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        JButton leaderboardBouton = new JButton("LEADERBOARD");
+        leaderboardBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
+        leaderboardBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        leaderboardBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         editerBouton.addActionListener(new ActionListener() {
             @Override
@@ -561,8 +566,18 @@ public class GameLauncher {
             	afficherEcranStatistiques();
             }
         });
+        
+     // --- NOUVELLE ACTION LEADERBOARD ---
+        leaderboardBouton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                afficherEcranLeaderboard(); // Appel de la nouvelle méthode
+            }
+        });
 
         voirStatsEditer.add(voirStatsBouton);
+        voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
+        voirStatsEditer.add(leaderboardBouton);	
         voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
         voirStatsEditer.add(editerBouton);
 
@@ -659,11 +674,117 @@ public class GameLauncher {
                 return "Impossible de récupérer l'historique.<br>(Code erreur : " + responseCode + ")";
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); 
             return "Erreur de connexion au serveur distant.";
         }
     }
     
+    
+ // --- NOUVELLE MÉTHODE : AFFICHER LE LEADERBOARD ---
+    public void afficherEcranLeaderboard() {
+        backgroundLabel.removeAll(); // Nettoie l'écran
+
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30))); // Marge en haut
+
+        // --- TITRE ---
+        JLabel titre = new JLabel("CLASSEMENT PUBLIC");
+        titre.setFont(new Font("Monospaced", Font.BOLD, 26));
+        titre.setForeground(java.awt.Color.WHITE);
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backgroundLabel.add(titre);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+
+        // --- RÉCUPÉRATION ET AFFICHAGE DES DONNÉES ---
+        String leaderboardTexte = recupererLeaderboardDuServeur();
+
+        JLabel statsLabel = new JLabel("<html><div style='text-align: center; color: white;'>" + leaderboardTexte + "</div></html>");
+        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 16));
+        statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backgroundLabel.add(statsLabel);
+        
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 40)));
+
+        // --- BOUTON RETOUR ---
+        JButton retourBouton = new JButton("RETOUR AU MENU");
+        retourBouton.setFont(new Font("Monospaced", Font.BOLD, 18));
+        retourBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        retourBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        retourBouton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                afficherMenuPrincipal(); // Retour au menu
+            }
+        });
+        
+        backgroundLabel.add(retourBouton);
+
+        backgroundLabel.revalidate();
+        backgroundLabel.repaint();
+    }
+    
+ // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
+    private String recupererLeaderboardDuServeur() {
+        try {
+            // URL de l'API Leaderboard
+            URL url = new URL("http://localhost:8080/test/api/leaderboard");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+
+            int responseCode = connection.getResponseCode();
+            
+            if (responseCode >= 200 && responseCode < 300) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                
+                String jsonResponse = response.toString();
+                
+                // Création d'un tableau HTML pour un affichage propre
+                StringBuilder htmlTable = new StringBuilder();
+                htmlTable.append("<table border='1' cellpadding='8' style='border-collapse: collapse; color: white;'>");
+                htmlTable.append("<tr style='background-color: #333333;'><th>Rang</th><th>Joueur</th><th>Meilleur Score</th></tr>");
+                
+                // Utilisation des expressions régulières pour extraire rank, username et bestScore du JSON
+                Pattern pattern = Pattern.compile("\"rank\"\\s*:\\s*(\\d+),\\s*\"username\"\\s*:\\s*\"([^\"]+)\",\\s*\"bestScore\"\\s*:\\s*(\\d+)");
+                Matcher matcher = pattern.matcher(jsonResponse);
+                
+                boolean hasData = false;
+                while (matcher.find()) {
+                    hasData = true;
+                    String rank = matcher.group(1);
+                    String username = matcher.group(2);
+                    String score = matcher.group(3);
+                    
+                    htmlTable.append("<tr>")
+                             .append("<td style='text-align:center;'>").append(rank).append("</td>")
+                             .append("<td style='text-align:center;'>").append(username).append("</td>")
+                             .append("<td style='text-align:center;'>").append(score).append("</td>")
+                             .append("</tr>");
+                }
+                htmlTable.append("</table>");
+                
+                if (!hasData) {
+                    return "Aucun joueur classé pour le moment.";
+                }
+                
+                return htmlTable.toString();
+                
+            } else {
+                return "Impossible de récupérer le classement.<br>(Code erreur : " + responseCode + ")";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Erreur de connexion au serveur distant.";
+        }
+    }
+
 
     private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
         URL imageUrl = getClass().getResource(resourcePath);
@@ -790,7 +911,7 @@ public class GameLauncher {
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = getValeurDifficulte(difficulte);
-        String niveau = "src/layouts/" + choixNiveau.getSelectedItem();
+        String niveau = "layouts/" + choixNiveau.getSelectedItem();
 
         try {
             PacmanGame fakeGame = new PacmanGame(1000, niveau, diff);
@@ -821,7 +942,7 @@ public class GameLauncher {
 
     public void lancerJeu() throws Exception {
         String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "src/layouts/" + choixFichier;
+        String path = "layouts/" + choixFichier;
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = getValeurDifficulte(difficulte);
