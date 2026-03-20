@@ -72,22 +72,15 @@ public class GameClient {
                         String line;
                         while((line = in.readLine()) != null) {
                             
-                            if (line.contains("choixNiveau")) {
-                                //Cas on on attend dans un room
+                            if (line.contains("maze")) {
+                                //si c'est maze, ca veut dire qu'on cherche a lancer/initialiser une partie
+                            	//donc on va envoyer le plateau a l'utilisateur
+                                GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
+                                
                                 if (viewGame == null) {
-                                    try {
-                                        InitialisationPartieModele paramsServeur = gson.fromJson(line, InitialisationPartieModele.class);
-                                        PacmanGame fakeGame = new PacmanGame(1000, paramsServeur.getChoixNiveau(), paramsServeur.getDifficulte());
-                                        viewGame = new ViewPacmanGame(fakeGame.getMaze());
-                                        getInputDirection();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                    viewGame = new ViewPacmanGame(etatDuJeu.getMaze());
+                                    getInputDirection();
                                 }
-                            } 
-                            else if (viewGame != null) {
-                            	//Cas classique ou onb recoit l'etat du jeu
-                            	GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 viewGame.actualiserClient(etatDuJeu);
                             }
                         }

@@ -803,7 +803,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("music/audio.wav");
+        File musicPath = new File("src/music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
@@ -911,14 +911,12 @@ public class GameLauncher {
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = getValeurDifficulte(difficulte);
-        String niveau = "layouts/" + choixNiveau.getSelectedItem();
+        String niveau = "src/layouts/" + choixNiveau.getSelectedItem();
 
         try {
-            PacmanGame fakeGame = new PacmanGame(1000, niveau, diff);
-            ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
-            new GameClient(ipServeur, 9081, viewGame, niveau, diff, roomId, true, false, sessionCookie);
-            new RoomWindow(roomId);
-            jFrame.dispose(); 
+        	new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie);
+        	new RoomWindow(roomId);
+        	jFrame.dispose(); 
             
         } catch (Exception e) {
         }
@@ -942,7 +940,7 @@ public class GameLauncher {
 
     public void lancerJeu() throws Exception {
         String choixFichier = (String) choixNiveau.getSelectedItem();
-        String path = "layouts/" + choixFichier;
+        String path = "src/layouts/" + choixFichier;
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = getValeurDifficulte(difficulte);

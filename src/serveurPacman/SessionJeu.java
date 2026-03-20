@@ -105,6 +105,8 @@ public class SessionJeu {
     public void ajouterClient(ConnectionToClient client) {
         clientList.add(client);
         client.assignerPacman();
+        GameStateModel stateModel = pacmanGameToGameStateModel(vraiJeu);
+        client.write(gson.toJson(stateModel));
     }
 
     public void retirerClient(ConnectionToClient client) {
