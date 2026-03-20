@@ -5,6 +5,8 @@ import java.net.URI;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -19,6 +21,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +48,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import clientMain.GameClient;
@@ -594,55 +600,59 @@ public class GameLauncher {
     	
  // --- NOUVELLE MÉTHODE : AFFICHER L'ÉCRAN DES STATISTIQUES ---
     public void afficherEcranStatistiques() {
-        backgroundLabel.removeAll(); // Nettoie l'écran
+        backgroundLabel.removeAll();
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
 
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30))); // Marge en haut
-
-        // --- TITRE ---
         String nomAffiche = (usernameConnecte != null && !usernameConnecte.isEmpty()) ? usernameConnecte : "Joueur Inconnu";
         JLabel titre = new JLabel("Historique de " + nomAffiche);
-        titre.setFont(new Font("Monospaced", Font.BOLD, 26));
-        titre.setForeground(java.awt.Color.WHITE);
+        titre.setFont(new Font("Monospaced", Font.BOLD, 28));
+        titre.setForeground(Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
         backgroundLabel.add(titre);
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- DONNÉES ---
-        String statsTexte = recupererStatsDuServeur(sessionCookie);
+        JPanel statsPanel = new JPanel(new BorderLayout());
+        statsPanel.setOpaque(true);
+        statsPanel.setBackground(new Color(10, 18, 45, 205));
+        statsPanel.setMaximumSize(new Dimension(640, 320));
+        statsPanel.setPreferredSize(new Dimension(640, 320));
+        statsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // On utilise HTML pour structurer le texte et forcer la couleur blanche
-        JLabel statsLabel = new JLabel("<html><div style='text-align: center; color: white;'>" + statsTexte + "</div></html>");
-        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backgroundLabel.add(statsLabel);
-        
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 40)));
+        JLabel statsLabel = new JLabel("<html>" + recupererStatsDuServeur(sessionCookie) + "</html>");
+        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        statsLabel.setForeground(Color.WHITE);
+        statsLabel.setVerticalAlignment(JLabel.TOP);
 
-        // --- BOUTON RETOUR ---
+        JScrollPane scrollPane = new JScrollPane(statsLabel);
+        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+
+        statsPanel.add(scrollPane, BorderLayout.CENTER);
+        backgroundLabel.add(statsPanel);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
+
         JButton retourBouton = new JButton("RETOUR AU MENU");
         retourBouton.setFont(new Font("Monospaced", Font.BOLD, 18));
         retourBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         retourBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
         retourBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                afficherMenuPrincipal(); // Retour au menu
+                afficherMenuPrincipal();
             }
         });
-        
-        backgroundLabel.add(retourBouton);
 
-        // Rafraîchissement de la fenêtre
+        backgroundLabel.add(retourBouton);
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
-    
-    
+
+
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LES STATS ---
     private String recupererStatsDuServeur(String sessionCookie) {
         if (sessionCookie == null || sessionCookie.isEmpty()) {
-            return "Erreur : Vous n'êtes pas connecté (Aucune session trouvée).";
+            return "<div style='text-align:center;'>Erreur : vous n'etes pas connecte.</div>";
         }
 
         try {
@@ -651,12 +661,9 @@ public class GameLauncher {
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
-            
-            // On injecte le cookie de session
             connection.setRequestProperty("Cookie", sessionCookie);
 
             int responseCode = connection.getResponseCode();
-            
             if (responseCode >= 200 && responseCode < 300) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String inputLine;
@@ -665,68 +672,135 @@ public class GameLauncher {
                     response.append(inputLine);
                 }
                 in.close();
-                
-                return "Dernières parties :<br><br>" + response.toString();
-                
+                return formatterHistoriqueScores(response.toString());
             } else if (responseCode == 401 || responseCode == 403) {
-                return "Accès refusé. Votre session a peut-être expiré. (Erreur " + responseCode + ")";
+                return "<div style='text-align:center;'>Acces refuse. Votre session a peut-etre expire. (Erreur " + responseCode + ")</div>";
             } else {
-                return "Impossible de récupérer l'historique.<br>(Code erreur : " + responseCode + ")";
+                return "<div style='text-align:center;'>Impossible de recuperer l'historique. (Code erreur : " + responseCode + ")</div>";
             }
         } catch (Exception e) {
-            e.printStackTrace(); 
-            return "Erreur de connexion au serveur distant.";
+            e.printStackTrace();
+            return "<div style='text-align:center;'>Erreur de connexion au serveur distant.</div>";
         }
     }
-    
-    
+
+    private String formatterHistoriqueScores(String json) {
+        String bestScore = extractNumericJsonValue(json, "bestScore");
+        String totalScores = extractNumericJsonValue(json, "totalScores");
+
+        Pattern itemPattern = Pattern.compile("\\{\\s*\"score\"\\s*:\\s*(\\d+)\\s*,\\s*\"createdAt\"\\s*:\\s*\"([^\"]+)\"\\s*\\}");
+        Matcher matcher = itemPattern.matcher(json);
+
+        StringBuilder html = new StringBuilder();
+        html.append("<div style='color:white; font-family:monospace;'>");
+        html.append("<div style='text-align:center; font-size:16px; margin-bottom:16px;'>");
+        html.append("<b>Meilleur score :</b> ").append(bestScore != null ? bestScore : "0").append("&nbsp;&nbsp;&nbsp;");
+        html.append("<b>Parties :</b> ").append(totalScores != null ? totalScores : "0");
+        html.append("</div>");
+        html.append("<table style='width:100%; border-collapse:collapse; color:white;'>");
+        html.append("<tr>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>#</th>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>Score</th>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>Date</th>");
+        html.append("</tr>");
+
+        int index = 1;
+        while (matcher.find()) {
+            html.append("<tr>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(index++).append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>").append(matcher.group(1)).append("</b></td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(formatterDateHumaine(matcher.group(2))).append("</td>");
+            html.append("</tr>");
+        }
+
+        if (index == 1) {
+            html.append("<tr><td colspan='3' style='padding:12px; text-align:center;'>Aucun score trouve.</td></tr>");
+        }
+
+        html.append("</table>");
+        html.append("</div>");
+        return html.toString();
+    }
+
+    private String formatterDateHumaine(String dateTexte) {
+        DateTimeFormatter[] inputFormats = new DateTimeFormatter[] {
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        };
+
+        for (DateTimeFormatter inputFormat : inputFormats) {
+            try {
+                LocalDateTime date = LocalDateTime.parse(dateTexte, inputFormat);
+                return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'a' HH:mm"));
+            } catch (DateTimeParseException exception) {
+            }
+        }
+
+        return dateTexte;
+    }
+
+    private String extractNumericJsonValue(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*(\\d+)");
+        Matcher matcher = pattern.matcher(json);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null;
+    }
+
  // --- NOUVELLE MÉTHODE : AFFICHER LE LEADERBOARD ---
     public void afficherEcranLeaderboard() {
-        backgroundLabel.removeAll(); // Nettoie l'écran
+        backgroundLabel.removeAll();
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
 
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30))); // Marge en haut
-
-        // --- TITRE ---
         JLabel titre = new JLabel("CLASSEMENT PUBLIC");
-        titre.setFont(new Font("Monospaced", Font.BOLD, 26));
-        titre.setForeground(java.awt.Color.WHITE);
+        titre.setFont(new Font("Monospaced", Font.BOLD, 28));
+        titre.setForeground(Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
         backgroundLabel.add(titre);
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- RÉCUPÉRATION ET AFFICHAGE DES DONNÉES ---
-        String leaderboardTexte = recupererLeaderboardDuServeur();
+        JPanel leaderboardPanel = new JPanel(new BorderLayout());
+        leaderboardPanel.setOpaque(true);
+        leaderboardPanel.setBackground(new Color(10, 18, 45, 205));
+        leaderboardPanel.setMaximumSize(new Dimension(640, 320));
+        leaderboardPanel.setPreferredSize(new Dimension(640, 320));
+        leaderboardPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel statsLabel = new JLabel("<html><div style='text-align: center; color: white;'>" + leaderboardTexte + "</div></html>");
-        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 16));
-        statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        backgroundLabel.add(statsLabel);
-        
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 40)));
+        JLabel leaderboardLabel = new JLabel("<html>" + recupererLeaderboardDuServeur() + "</html>");
+        leaderboardLabel.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        leaderboardLabel.setForeground(Color.WHITE);
+        leaderboardLabel.setVerticalAlignment(JLabel.TOP);
 
-        // --- BOUTON RETOUR ---
+        JScrollPane scrollPane = new JScrollPane(leaderboardLabel);
+        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+
+        leaderboardPanel.add(scrollPane, BorderLayout.CENTER);
+        backgroundLabel.add(leaderboardPanel);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
+
         JButton retourBouton = new JButton("RETOUR AU MENU");
         retourBouton.setFont(new Font("Monospaced", Font.BOLD, 18));
         retourBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         retourBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
         retourBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                afficherMenuPrincipal(); // Retour au menu
+                afficherMenuPrincipal();
             }
         });
-        
-        backgroundLabel.add(retourBouton);
 
+        backgroundLabel.add(retourBouton);
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
-    
+
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
     private String recupererLeaderboardDuServeur() {
         try {
-            // URL de l'API Leaderboard
             URL url = new URL("http://localhost:8080/test/api/leaderboard");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
@@ -734,7 +808,6 @@ public class GameLauncher {
             connection.setReadTimeout(5000);
 
             int responseCode = connection.getResponseCode();
-            
             if (responseCode >= 200 && responseCode < 300) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String inputLine;
@@ -743,48 +816,52 @@ public class GameLauncher {
                     response.append(inputLine);
                 }
                 in.close();
-                
-                String jsonResponse = response.toString();
-                
-                // Création d'un tableau HTML pour un affichage propre
-                StringBuilder htmlTable = new StringBuilder();
-                htmlTable.append("<table border='1' cellpadding='8' style='border-collapse: collapse; color: white;'>");
-                htmlTable.append("<tr style='background-color: #333333;'><th>Rang</th><th>Joueur</th><th>Meilleur Score</th></tr>");
-                
-                // Utilisation des expressions régulières pour extraire rank, username et bestScore du JSON
-                Pattern pattern = Pattern.compile("\"rank\"\\s*:\\s*(\\d+),\\s*\"username\"\\s*:\\s*\"([^\"]+)\",\\s*\"bestScore\"\\s*:\\s*(\\d+)");
-                Matcher matcher = pattern.matcher(jsonResponse);
-                
-                boolean hasData = false;
-                while (matcher.find()) {
-                    hasData = true;
-                    String rank = matcher.group(1);
-                    String username = matcher.group(2);
-                    String score = matcher.group(3);
-                    
-                    htmlTable.append("<tr>")
-                             .append("<td style='text-align:center;'>").append(rank).append("</td>")
-                             .append("<td style='text-align:center;'>").append(username).append("</td>")
-                             .append("<td style='text-align:center;'>").append(score).append("</td>")
-                             .append("</tr>");
-                }
-                htmlTable.append("</table>");
-                
-                if (!hasData) {
-                    return "Aucun joueur classé pour le moment.";
-                }
-                
-                return htmlTable.toString();
-                
-            } else {
-                return "Impossible de récupérer le classement.<br>(Code erreur : " + responseCode + ")";
+                return formatterLeaderboard(response.toString());
             }
+            return "<div style='text-align:center;'>Impossible de recuperer le classement. (Code erreur : " + responseCode + ")</div>";
         } catch (Exception e) {
             e.printStackTrace();
-            return "Erreur de connexion au serveur distant.";
+            return "<div style='text-align:center;'>Erreur de connexion au serveur distant.</div>";
         }
     }
 
+    private String formatterLeaderboard(String json) {
+        String totalUsers = extractNumericJsonValue(json, "totalUsers");
+        String count = extractNumericJsonValue(json, "count");
+        Pattern itemPattern = Pattern.compile("\\{\\s*\"rank\"\\s*:\\s*(\\d+)\\s*,\\s*\"username\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"bestScore\"\\s*:\\s*(\\d+)\\s*\\}");
+        Matcher matcher = itemPattern.matcher(json);
+
+        StringBuilder html = new StringBuilder();
+        html.append("<div style='color:white; font-family:monospace;'>");
+        html.append("<div style='text-align:center; font-size:16px; margin-bottom:16px;'>");
+        html.append("<b>Joueurs classes :</b> ").append(count != null ? count : "0").append("&nbsp;&nbsp;&nbsp;");
+        html.append("<b>Total joueurs :</b> ").append(totalUsers != null ? totalUsers : "0");
+        html.append("</div>");
+        html.append("<table style='width:100%; border-collapse:collapse; color:white;'>");
+        html.append("<tr>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>Rang</th>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>Joueur</th>");
+        html.append("<th style='border-bottom:1px solid #6ee7ff; padding:8px; text-align:left;'>Meilleur score</th>");
+        html.append("</tr>");
+
+        boolean hasData = false;
+        while (matcher.find()) {
+            hasData = true;
+            html.append("<tr>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>#").append(matcher.group(1)).append("</b></td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(matcher.group(2)).append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(matcher.group(3)).append("</td>");
+            html.append("</tr>");
+        }
+
+        if (!hasData) {
+            html.append("<tr><td colspan='3' style='padding:12px; text-align:center;'>Aucun joueur classe pour le moment.</td></tr>");
+        }
+
+        html.append("</table>");
+        html.append("</div>");
+        return html.toString();
+    }
 
     private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
         URL imageUrl = getClass().getResource(resourcePath);
