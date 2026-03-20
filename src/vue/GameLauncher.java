@@ -558,7 +558,7 @@ public class GameLauncher {
         voirStatsBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	new StatistiquesWindow(usernameConnecte, sessionCookie);
+            	afficherEcranStatistiques();
             }
         });
 
@@ -577,7 +577,92 @@ public class GameLauncher {
         backgroundLabel.repaint();
     }
     	
+ // --- NOUVELLE MÉTHODE : AFFICHER L'ÉCRAN DES STATISTIQUES ---
+    public void afficherEcranStatistiques() {
+        backgroundLabel.removeAll(); // Nettoie l'écran
 
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30))); // Marge en haut
+
+        // --- TITRE ---
+        String nomAffiche = (usernameConnecte != null && !usernameConnecte.isEmpty()) ? usernameConnecte : "Joueur Inconnu";
+        JLabel titre = new JLabel("Historique de " + nomAffiche);
+        titre.setFont(new Font("Monospaced", Font.BOLD, 26));
+        titre.setForeground(java.awt.Color.WHITE);
+        titre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backgroundLabel.add(titre);
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
+
+        // --- DONNÉES ---
+        String statsTexte = recupererStatsDuServeur(sessionCookie);
+
+        // On utilise HTML pour structurer le texte et forcer la couleur blanche
+        JLabel statsLabel = new JLabel("<html><div style='text-align: center; color: white;'>" + statsTexte + "</div></html>");
+        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        statsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        backgroundLabel.add(statsLabel);
+        
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 40)));
+
+        // --- BOUTON RETOUR ---
+        JButton retourBouton = new JButton("RETOUR AU MENU");
+        retourBouton.setFont(new Font("Monospaced", Font.BOLD, 18));
+        retourBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        retourBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        retourBouton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                afficherMenuPrincipal(); // Retour au menu
+            }
+        });
+        
+        backgroundLabel.add(retourBouton);
+
+        // Rafraîchissement de la fenêtre
+        backgroundLabel.revalidate();
+        backgroundLabel.repaint();
+    }
+    
+    
+ // --- NOUVELLE MÉTHODE : RÉCUPÉRER LES STATS ---
+    private String recupererStatsDuServeur(String sessionCookie) {
+        if (sessionCookie == null || sessionCookie.isEmpty()) {
+            return "Erreur : Vous n'êtes pas connecté (Aucune session trouvée).";
+        }
+
+        try {
+            URL url = new URL("http://localhost:8080/test/api/scores/history?limit=5&offset=0");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            
+            // On injecte le cookie de session
+            connection.setRequestProperty("Cookie", sessionCookie);
+
+            int responseCode = connection.getResponseCode();
+            
+            if (responseCode >= 200 && responseCode < 300) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String inputLine;
+                StringBuilder response = new StringBuilder();
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+                
+                return "Dernières parties :<br><br>" + response.toString();
+                
+            } else if (responseCode == 401 || responseCode == 403) {
+                return "Accès refusé. Votre session a peut-être expiré. (Erreur " + responseCode + ")";
+            } else {
+                return "Impossible de récupérer l'historique.<br>(Code erreur : " + responseCode + ")";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Erreur de connexion au serveur distant.";
+        }
+    }
     
 
     private ImageIcon loadImageIcon(String resourcePath, String... fallbackPaths) {
