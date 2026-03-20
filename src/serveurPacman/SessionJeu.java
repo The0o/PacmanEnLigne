@@ -94,6 +94,11 @@ public class SessionJeu {
                 stateModel.getPositionsPacmans().add(vraiJeu.listeAgent.get(i).getPosition());
             } 
         }
+		if (vraiJeu.capsulteTimer > 0) {
+			stateModel.setEffraye(true);
+		} else {
+			stateModel.setEffraye(false);
+		}
         return stateModel;
     }
 

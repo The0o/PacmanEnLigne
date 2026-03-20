@@ -52,6 +52,7 @@ public class ViewPacmanGame implements Observateur {
     	ArrayList<Pacman> listePacman = new ArrayList<Pacman>();
     	ArrayList<Fantome> listeFantome = new ArrayList<Fantome>();
     	this.panelPacman.setPacmans_pos(gameState.getPositionsPacmans());
+    	this.panelPacman.setGhostsScarred(gameState.getEffraye());
     	this.panelPacman.setGhosts_pos(gameState.getPositionsFantomes());
     	this.panelPacman.repaint();
     }

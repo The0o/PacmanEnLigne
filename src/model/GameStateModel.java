@@ -10,12 +10,19 @@ public class GameStateModel {
 	private Maze maze;
 	private ArrayList<PositionAgent> positionsPacmans = new ArrayList<>();
 	private ArrayList<PositionAgent> positionsFantomes = new ArrayList<>();
+	private boolean effraye;
     
 	public void setMaze(Maze maze) {
 		this.maze = maze;
 	}
 	public Maze getMaze() {
 		return maze;
+	}
+	public boolean getEffraye() {
+		return effraye;
+	}
+	public void setEffraye(boolean effraye) {
+		this.effraye = effraye;
 	}
 	public ArrayList<PositionAgent> getPositionsPacmans() {
 		return positionsPacmans;
