@@ -464,6 +464,14 @@ public class GameLauncher {
         multiplayerPanel.setVisible(false);
 
         JButton creerRoomBtn = new JButton("Creer une room");
+        creerRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
+        creerRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        creerRoomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionCreerRoom();
+            }
+        });
 
         roomIdField = new JTextField();
         roomIdField.setMaximumSize(new Dimension(80, 25));
@@ -473,6 +481,12 @@ public class GameLauncher {
         JButton rejoindreRoomBtn = new JButton("Rejoindre");
         rejoindreRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
         rejoindreRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        rejoindreRoomBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionRejoindreRoom();
+            }
+        });
 
         multiplayerPanel.add(creerRoomBtn);
         multiplayerPanel.add(Box.createRigidArea(new Dimension(10, 0)));
