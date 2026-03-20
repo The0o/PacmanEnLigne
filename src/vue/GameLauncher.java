@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -405,7 +406,6 @@ public class GameLauncher {
         choixNiveau = new JComboBox<>();
         choixNiveau.setFont(new Font("Monospaced", Font.PLAIN, 14));
         choixNiveau.setMaximumSize(new Dimension(300, 40));
-        chargerNiveaux();
         backgroundLabel.add(choixNiveau);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 10)));
 
@@ -430,6 +430,8 @@ public class GameLauncher {
         
         JRadioButton radioSolo = new JRadioButton("Solo");
         radioSolo.setSelected(true);
+        chargerNiveaux(false, false);
+        //on charge les niveaux solos la premiere fois
         radioSolo.setOpaque(false);
         radioSolo.setForeground(java.awt.Color.WHITE);
         radioSolo.setFont(new Font("Monospaced", Font.BOLD, 14));
@@ -438,21 +440,30 @@ public class GameLauncher {
         radioMulti.setOpaque(false);
         radioMulti.setForeground(java.awt.Color.WHITE);
         radioMulti.setFont(new Font("Monospaced", Font.BOLD, 14));
+        
+        JRadioButton radioPersonnalise = new JRadioButton("Personnalisé");
+        radioPersonnalise.setOpaque(false);
+        radioPersonnalise.setForeground(java.awt.Color.WHITE);
+        radioPersonnalise.setFont(new Font("Monospaced", Font.BOLD, 14));
 
         ButtonGroup groupeMode = new ButtonGroup();
         groupeMode.add(radioSolo);
         groupeMode.add(radioMulti);
+        groupeMode.add(radioPersonnalise);
+
+        modePanel.add(radioSolo);
+        modePanel.add(radioMulti);
+        modePanel.add(radioPersonnalise);
+        backgroundLabel.add(modePanel);
+        
+        //----------PARTIE MULTIJOUEUR-----------
+
+        JPanel multiplayerPanel = new JPanel();
+        multiplayerPanel.setLayout(new BoxLayout(multiplayerPanel, BoxLayout.X_AXIS));
+        multiplayerPanel.setOpaque(false);
+        multiplayerPanel.setVisible(false);
 
         JButton creerRoomBtn = new JButton("Creer une room");
-        creerRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
-        creerRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        creerRoomBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                actionCreerRoom(); 
-            }
-        });
 
         roomIdField = new JTextField();
         roomIdField.setMaximumSize(new Dimension(80, 25));
@@ -463,25 +474,28 @@ public class GameLauncher {
         rejoindreRoomBtn.setFont(new Font("Monospaced", Font.BOLD, 12));
         rejoindreRoomBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        rejoindreRoomBtn.addActionListener(new ActionListener() {
+        multiplayerPanel.add(creerRoomBtn);
+        multiplayerPanel.add(Box.createRigidArea(new Dimension(10, 0)));
+        multiplayerPanel.add(roomIdField);
+        multiplayerPanel.add(Box.createRigidArea(new Dimension(5, 0)));
+        multiplayerPanel.add(rejoindreRoomBtn);
+
+        backgroundLabel.add(multiplayerPanel);
+
+        ActionListener toggleMultiplayer = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                actionRejoindreRoom();
+                multiplayerPanel.setVisible(radioMulti.isSelected());
+                chargerNiveaux(radioMulti.isSelected(), radioPersonnalise.isSelected());
+                
+                backgroundLabel.revalidate();
+                backgroundLabel.repaint();
             }
-        });
+        };
 
-        modePanel.add(radioSolo);
-        modePanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        modePanel.add(radioMulti);
-        modePanel.add(Box.createRigidArea(new Dimension(30, 0)));
-        modePanel.add(creerRoomBtn);
-        modePanel.add(Box.createRigidArea(new Dimension(10, 0)));
-        modePanel.add(roomIdField);
-        modePanel.add(Box.createRigidArea(new Dimension(5, 0)));
-        modePanel.add(rejoindreRoomBtn);
-
-        backgroundLabel.add(modePanel);
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
+        radioSolo.addActionListener(toggleMultiplayer);
+        radioMulti.addActionListener(toggleMultiplayer);
+        radioPersonnalise.addActionListener(toggleMultiplayer);
 
         //-------------BOUTON COMMENCER-------------
         JButton startButton = new JButton("COMMENCER");
@@ -565,7 +579,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("music/audio.wav");
+        File musicPath = new File("src/music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
@@ -581,14 +595,84 @@ public class GameLauncher {
         }
     }
 
-    public void chargerNiveaux() {
-        File folder = new File("layouts");
+    public void chargerNiveaux(boolean multi, boolean personnalise) {
+    	ArrayList<String> listeNiveauxSolo = new ArrayList<String>(List.of(
+    			"bigCorners.lay",
+    			"bigMaze.lay",
+    			"bigSafeSearch.lay",
+    			"bigSearch.lay",
+    			"bigSearch_onePacman_oneGhost.lay",
+    			"boxSearch.lay",
+    			"capsuleClassic.lay",
+    			"contestClassic.lay",
+    			"contoursMaze.lay",
+    			"greedySearch.lay",
+    			"mediumClassic.lay",
+    			"mediumClassic_onePacman.lay",
+    			"mediumCorners.lay",
+    			"mediumDottedMaze.lay",
+    			"mediumMaze.lay",
+    			"mediumSafeSearch.lay",
+    			"mediumScaryMaze.lay",
+    			"mediumSearch.lay",
+    			"minimaxClassic.lay",
+    			"oddSearch.lay",
+    			"openClassic.lay",
+    			"openMaze.lay",
+    			"openSearch.lay",
+    			"originalClassic.lay",
+    			"originalClassic_oneFood.lay",
+    			"smallClassic.lay",
+    			"smallMaze.lay",
+    			"smallSafeSearch.lay",
+    			"smallSearch.lay",
+    			"test.lay",
+    			"testClassic.lay",
+    			"testMaze.lay",
+    			"testSearch.lay",
+    			"tinyCorners.lay",
+    			"tinyMaze.lay",
+    			"tinySafeSearch.lay",
+    			"tinySearch.lay",
+    			"trappedClassic.lay",
+    			"trickyClassic.lay",
+    			"trickySearch.lay"));
+    	ArrayList<String> listeNiveauxMultis = new ArrayList<String>(List.of(
+    			"bigSearch_twoPacmans.lay",
+    			"bigSearch_twoPacmans_oneGhost.lay",
+    			"mediumClassic_fivePacmans.lay",
+    			"mediumClassic_manyPacmans.lay",
+    			"mediumClassic_twoPacmans.lay",
+    			"originalClassic_oneFood_fivePacmans.lay",
+    			"originalClassic_oneFood_TenPacmans.lay",
+    			"originalClassic_oneFood_twoPacmans.lay"));
+    	choixNiveau.removeAllItems();
+        File folder = new File("src/layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
-                for (File file : files) {
-                    choixNiveau.addItem(file.getName());
-                }
+            	/*
+            	 * En fonction du radio button selectionne :
+            	 * soit  c'est en mode solo, mode multi, ou mode personnalise
+            	 * pour l'instant on peut pas faire de personnalise en multi
+            	 */
+            	if (personnalise) {
+            		for (File file : files) {
+            			if (!listeNiveauxSolo.contains(file.getName()) && !listeNiveauxMultis.contains(file.getName())) {
+            				choixNiveau.addItem(file.getName());
+            			}
+            		}
+            	}
+            	else if (multi) {
+            		for (String niveau : listeNiveauxMultis) {
+                		choixNiveau.addItem(niveau);
+            		}
+            	}
+            	else {
+            		for (String niveau : listeNiveauxSolo) {
+                		choixNiveau.addItem(niveau);
+            		}
+            	}
             }
         }
     }
