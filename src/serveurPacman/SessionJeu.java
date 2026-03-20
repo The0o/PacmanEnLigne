@@ -55,19 +55,20 @@ public class SessionJeu {
     public void sendScore() {
 		int nbFood = 0;
 		for (int i = 0; i < vraiJeu.getMaze().getSizeX(); i++) {
-			for (int j = 0; i < vraiJeu.getMaze().getSizeY(); j++) {
+			for (int j = 0; j < vraiJeu.getMaze().getSizeY(); j++) {
 				if (vraiJeu.getMaze().isFood(i, j)) {
 					nbFood++;
 				}
 			}
 		}
+
 		int nbTour = vraiJeu.turn;
-		
-		//Pour calculer le score, on va faire pour l'instant simple (et on complexifiera eventuellement plus tard si on souhaite)
-		//on va utiliser le nombre de tour effectue par le joueur, et le nombre de food qu'il y avait
-		//C'est vraiment simple et pas tres precis mais au moins on a le score
-		int score = (nbFood-nbTour)/nbTour;
-		//appel API :
+		int score = nbTour > 0 ? Math.max(0, (nbFood - nbTour) / nbTour) : 0;
+		System.out.println("sendScore() appelee - nbFood=" + nbFood + ", nbTour=" + nbTour + ", score=" + score + ", joueurs=" + clientList.size());
+
+		for (ConnectionToClient client : clientList) {
+			client.envoyerScore(score);
+		}
 	}
 
 	private GameStateModel pacmanGameToGameStateModel(PacmanGame vraiJeu) {

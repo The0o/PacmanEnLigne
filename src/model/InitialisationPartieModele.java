@@ -19,6 +19,9 @@ public class InitialisationPartieModele {
 	public String getRoomId() {
 		return roomId;
 	}
+	public String getSessionCookie() {
+		return sessionCookie;
+	}
 	public boolean isCreation() {
 		return isCreation;
 	}
@@ -27,13 +30,22 @@ public class InitialisationPartieModele {
 	}
 
 	public InitialisationPartieModele(String choixNiveau, double difficulte) {
+		this(choixNiveau, difficulte, null);
+	}	
+
+	public InitialisationPartieModele(String choixNiveau, double difficulte, String sessionCookie) {
 		this.choixNiveau = choixNiveau;
 		this.difficulte = difficulte;
+		this.sessionCookie = sessionCookie;
         this.isRandom = true;
-	}	
+	}
 	
 	public InitialisationPartieModele(String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom) {
-		this(choixNiveau, difficulte);
+		this(choixNiveau, difficulte, roomId, isCreation, isRandom, null);
+	}
+
+	public InitialisationPartieModele(String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie) {
+		this(choixNiveau, difficulte, sessionCookie);
 		this.roomId = roomId;
 		this.isCreation = isCreation;
 		this.isRandom = isRandom;
@@ -42,6 +54,7 @@ public class InitialisationPartieModele {
 	private String choixNiveau;
 	private double difficulte;
 	private String roomId;
+	private String sessionCookie;
 	private boolean isCreation; //utilise que quand isRandom est false, c'est quand on cree la room (et non la rejoindre)
 	private boolean isRandom; //si isRandom est true, ca veut dire qu'il fait une partie sans room
 }

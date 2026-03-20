@@ -598,7 +598,7 @@ public class GameLauncher {
         try {
             PacmanGame fakeGame = new PacmanGame(1000, niveau, diff);
             ViewPacmanGame viewGame = new ViewPacmanGame(fakeGame.getMaze());
-            new GameClient(ipServeur, 9081, viewGame, niveau, diff, roomId, true, false);
+            new GameClient(ipServeur, 9081, viewGame, niveau, diff, roomId, true, false, sessionCookie);
             new RoomWindow(roomId);
             jFrame.dispose(); 
             
@@ -615,7 +615,7 @@ public class GameLauncher {
         }
 
         try {
-            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false);
+            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie);
             jFrame.dispose();
             
         } catch (Exception e) {
