@@ -17,6 +17,7 @@ public class SessionJeu {
     private double difficulte;
     private String roomId; 
     private boolean isRandom;
+    private int nombreFoodInitial;
     private Gson gson = new Gson();
 
     public SessionJeu(InitialisationPartieModele init) throws Exception {
@@ -29,6 +30,7 @@ public class SessionJeu {
         this.vraiJeu = new PacmanGame(1000, this.niveau, this.difficulte);
         this.vraiJeu.init();
         this.nombreJoueursAttendus = this.vraiJeu.getMaze().getInitNumberOfPacmans();
+        this.nombreFoodInitial = compterFoodRestante();
     }
 
     public void demarrerPartie() {
@@ -53,6 +55,24 @@ public class SessionJeu {
     }
 
     public void sendScore() {
+		int nbFoodRestante = compterFoodRestante();
+		int nbTour = vraiJeu.turn;
+		int nbFoodMangee = Math.max(0, nombreFoodInitial - nbFoodRestante);
+
+		int score = nbFoodMangee * 100 - nbTour;
+		if (nbFoodRestante == 0) {
+			score += 500;
+		}
+		score = Math.max(0, score);
+
+		System.out.println("sendScore() appelee - foodInitial=" + nombreFoodInitial + ", foodRestante=" + nbFoodRestante + ", foodMangee=" + nbFoodMangee + ", nbTour=" + nbTour + ", score=" + score + ", joueurs=" + clientList.size());
+
+		for (ConnectionToClient client : clientList) {
+			client.envoyerScore(score);
+		}
+	}
+
+	private int compterFoodRestante() {
 		int nbFood = 0;
 		for (int i = 0; i < vraiJeu.getMaze().getSizeX(); i++) {
 			for (int j = 0; j < vraiJeu.getMaze().getSizeY(); j++) {
@@ -61,14 +81,7 @@ public class SessionJeu {
 				}
 			}
 		}
-
-		int nbTour = vraiJeu.turn;
-		int score = nbTour > 0 ? Math.max(0, (nbFood - nbTour) / nbTour) : 0;
-		System.out.println("sendScore() appelee - nbFood=" + nbFood + ", nbTour=" + nbTour + ", score=" + score + ", joueurs=" + clientList.size());
-
-		for (ConnectionToClient client : clientList) {
-			client.envoyerScore(score);
-		}
+		return nbFood;
 	}
 
 	private GameStateModel pacmanGameToGameStateModel(PacmanGame vraiJeu) {
