@@ -66,16 +66,23 @@ public class GameLauncher {
         jFrame = new JFrame();
         jFrame.setTitle("Pacman");
 
+        
+        int largeurFenetre = 800;
+        int hauteurFenetre = 600;
+        
         //-------------IMAGE BACKGROUND---------------
         ImageIcon image = loadImageIcon("/image/pacmanImage.jpg", "src/image/pacmanImage.jpg", "image/pacmanImage.jpg");
         if (image.getIconWidth() != -1) {
-            backgroundLabel = new JLabel(image);
+        	java.awt.Image img = image.getImage();
+            java.awt.Image newImg = img.getScaledInstance(largeurFenetre, hauteurFenetre, java.awt.Image.SCALE_SMOOTH);
+            backgroundLabel = new JLabel(new ImageIcon(newImg));
         }
         else {
             backgroundLabel = new JLabel();
-            jFrame.setPreferredSize(new Dimension(600, 600));
         }
-
+        
+        
+        jFrame.setPreferredSize(new Dimension(largeurFenetre, hauteurFenetre));
         backgroundLabel.setLayout(new BoxLayout(backgroundLabel, BoxLayout.Y_AXIS));
         jFrame.setContentPane(backgroundLabel);
 
@@ -122,6 +129,8 @@ public class GameLauncher {
         creerCompteLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         creerCompteLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Curseur "main"
         creerCompteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        creerCompteLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
         
      // Ajout de l'événement au clic
         creerCompteLabel.addMouseListener(new MouseAdapter() {
@@ -198,6 +207,7 @@ public class GameLauncher {
         retourConnexionLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         retourConnexionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
         retourConnexionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        retourConnexionLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         
         retourConnexionLabel.addMouseListener(new MouseAdapter() {
             @Override
@@ -555,7 +565,7 @@ public class GameLauncher {
     }
 
     public void launchMusic() {
-        File musicPath = new File("src/music/audio.wav");
+        File musicPath = new File("music/audio.wav");
         AudioInputStream audioInputStream;
         try {
             if (clip != null && clip.isRunning()) return;
@@ -572,7 +582,7 @@ public class GameLauncher {
     }
 
     public void chargerNiveaux() {
-        File folder = new File("src/layouts");
+        File folder = new File("layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
