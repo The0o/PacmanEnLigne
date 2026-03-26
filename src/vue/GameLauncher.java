@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -70,6 +71,8 @@ public class GameLauncher {
             : "http://localhost:8080/test";
     private static final String LOGIN_API_URL = WEB_BASE_URL + "/api/auth/login";
     private static final String REGISTER_PAGE_URL = WEB_BASE_URL + "/api/users";
+    private static final String BRIDGE_TOKEN_API_URL = WEB_BASE_URL + "/api/auth/bridge-token";
+    private static final String BRIDGE_LOGIN_URL = WEB_BASE_URL + "/bridge-login";
     private static final String SCORE_HISTORY_API_URL = WEB_BASE_URL + "/api/scores/history?limit=5&offset=0";
     private static final String LEADERBOARD_API_URL = WEB_BASE_URL + "/api/leaderboard";
     private static final String HISTORY_PAGE_URL = WEB_BASE_URL + "/history.jsp";
@@ -411,6 +414,57 @@ public class GameLauncher {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    private void ouvrirPageWebAvecBridge(String target) {
+        String token = demanderBridgeToken();
+        if (token == null || token.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    jFrame,
+                    "Impossible d'ouvrir la page web automatiquement. Reconnectez-vous puis reessayez.",
+                    "Erreur",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String url = BRIDGE_LOGIN_URL
+                + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
+                + "&target=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
+        ouvrirPageWeb(url);
+    }
+
+    private String demanderBridgeToken() {
+        if (sessionCookie == null || sessionCookie.isEmpty()) {
+            return null;
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(BRIDGE_TOKEN_API_URL);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(15000);
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Cookie", sessionCookie);
+
+            int responseCode = connection.getResponseCode();
+            String responseBody = readResponseBody(responseCode >= 200 && responseCode < 300
+                    ? connection.getInputStream()
+                    : connection.getErrorStream());
+
+            if (responseCode >= 200 && responseCode < 300) {
+                return extractJsonValue(responseBody, "token");
+            }
+        } catch (IOException exception) {
+            System.out.println("[BRIDGE] Exception : " + exception.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+
+        return null;
+    }
+
     private void ouvrirPageWeb(String url) {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
@@ -632,14 +686,14 @@ public class GameLauncher {
         voirStatsBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ouvrirPageWeb(HISTORY_PAGE_URL);
+                ouvrirPageWebAvecBridge("history");
             }
         });
 
         leaderboardBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ouvrirPageWeb(LEADERBOARD_PAGE_URL);
+                ouvrirPageWebAvecBridge("leaderboard");
             }
         });
 
