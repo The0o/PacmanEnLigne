@@ -48,11 +48,16 @@ public class ViewPacmanGame implements Observateur {
     }
     
     public void actualiserClient(GameStateModel gameState) {
-    	this.panelPacman.setMaze(gameState.getMaze());
-    	this.panelPacman.setPacmans_pos(gameState.getPositionsPacmans());
-        this.panelPacman.setPacmansUsernames(gameState.getPacmansUsernames()); // NOUVEAU
-    	this.panelPacman.setGhostsScarred(gameState.getEffraye());
-    	this.panelPacman.setGhosts_pos(gameState.getPositionsFantomes());
+    	if (gameState.isRunning()) {
+        	this.panelPacman.setMaze(gameState.getMaze());
+        	this.panelPacman.setPacmans_pos(gameState.getPositionsPacmans());
+        	this.panelPacman.setPacmansUsernames(gameState.getPacmansUsernames()); // NOUVEAU
+        	this.panelPacman.setGhostsScarred(gameState.getEffraye());
+        	this.panelPacman.setGhosts_pos(gameState.getPositionsFantomes());
+    	}
+    	else {
+    		finPartie("FIN DE PARTIE", Color.gray);
+    	}
     	this.panelPacman.repaint();
     }
     
@@ -111,7 +116,7 @@ public class ViewPacmanGame implements Observateur {
                 for (Window window: Window.getWindows()) {
                     window.dispose();
                 }
-                new GameLauncher();
+                new GameLauncherEnLigne().afficherMenuPrincipal();
             }
         });
         timer.setRepeats(false);
