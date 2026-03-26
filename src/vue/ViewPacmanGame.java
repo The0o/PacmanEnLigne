@@ -24,8 +24,16 @@ public class ViewPacmanGame implements Observateur {
     public PanelPacmanGame panelPacman;
     public JFrame jFrame;
     public boolean partieTerminee = false;
+    private String sessionCookie;
+    private String usernameConnecte;
 
     public ViewPacmanGame(Maze maze) {
+        this(maze, null, null);
+    }
+
+    public ViewPacmanGame(Maze maze, String sessionCookie, String usernameConnecte) {
+        this.sessionCookie = sessionCookie;
+        this.usernameConnecte = usernameConnecte;
         jFrame = new JFrame();
         jFrame.setTitle("Pacmann");
         Dimension windowSize = jFrame.getSize();
@@ -116,7 +124,7 @@ public class ViewPacmanGame implements Observateur {
                 for (Window window: Window.getWindows()) {
                     window.dispose();
                 }
-                new GameLauncherEnLigne().afficherMenuPrincipal();
+                new GameLauncherEnLigne(sessionCookie, usernameConnecte);
             }
         });
         timer.setRepeats(false);

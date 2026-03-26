@@ -20,6 +20,8 @@ public class GameClient {
     private Socket socket;
     private Gson gson = new Gson();
     private ViewPacmanGame viewGame;
+    private String sessionCookie;
+    private String username;
     
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte) throws IOException {
     		this(IPAdress, port, viewGame, choixNiveau, difficulte, null, null);
@@ -31,6 +33,8 @@ public class GameClient {
 
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String sessionCookie, String username, String scoreApiUrl) throws IOException {
     	this.viewGame = viewGame;
+    	this.sessionCookie = sessionCookie;
+    	this.username = username;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
     	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, sessionCookie, username);
@@ -48,6 +52,8 @@ public class GameClient {
 
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie, String username, String scoreApiUrl) throws IOException {
     	this.viewGame = viewGame;
+    	this.sessionCookie = sessionCookie;
+    	this.username = username;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
     	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, roomId, isCreation, isRandom, sessionCookie, username);
@@ -84,7 +90,7 @@ public class GameClient {
                                 GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 
                                 if (viewGame == null) {
-                                    viewGame = new ViewPacmanGame(etatDuJeu.getMaze());
+                                    viewGame = new ViewPacmanGame(etatDuJeu.getMaze(), sessionCookie, username);
                                     getInputDirection();
                                 }
                                 viewGame.actualiserClient(etatDuJeu);

@@ -86,6 +86,12 @@ public class GameLauncher {
     protected String usernameConnecte;
 
     public GameLauncher() {
+        this(null, null);
+    }
+
+    public GameLauncher(String sessionCookie, String usernameConnecte) {
+        this.sessionCookie = sessionCookie;
+        this.usernameConnecte = usernameConnecte;
         jFrame = new JFrame();
         jFrame.setTitle("Pacman");
 
@@ -108,7 +114,12 @@ public class GameLauncher {
 
         // Au démarrage, on lance la musique et on affiche l'écran de connexion
         launchMusic();
-        afficherEcranConnexion();
+        if (this.sessionCookie != null && !this.sessionCookie.isEmpty()
+                && this.usernameConnecte != null && !this.usernameConnecte.isEmpty()) {
+            afficherMenuPrincipal();
+        } else {
+            afficherEcranConnexion();
+        }
 
         jFrame.pack();
         jFrame.setLocationRelativeTo(null);

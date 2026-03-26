@@ -5,6 +5,14 @@ import clientMain.GameClient;
 import game.PacmanGame;
 
 public class GameLauncherEnLigne extends GameLauncher {
+
+    public GameLauncherEnLigne() {
+        super();
+    }
+
+    public GameLauncherEnLigne(String sessionCookie, String usernameConnecte) {
+        super(sessionCookie, usernameConnecte);
+    }
     
     @Override
     public void lancerJeu() throws Exception {
