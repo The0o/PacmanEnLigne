@@ -64,10 +64,16 @@ public class GameLauncher {
     protected JTextField roomIdField;
     public static Clip clip;
 
-    // private static final String WEB_BASE_URL = "http://localhost:8080/test";
-    private static final String WEB_BASE_URL = "http://46.101.67.203:8080/tomcat";
+    private static final boolean USE_ONLINE_SERVER = false;
+    private static final String WEB_BASE_URL = USE_ONLINE_SERVER
+            ? "http://46.101.67.203:8080/tomcat"
+            : "http://localhost:8080/test";
     private static final String LOGIN_API_URL = WEB_BASE_URL + "/api/auth/login";
     private static final String REGISTER_PAGE_URL = WEB_BASE_URL + "/api/users";
+    private static final String SCORE_HISTORY_API_URL = WEB_BASE_URL + "/api/scores/history?limit=5&offset=0";
+    private static final String LEADERBOARD_API_URL = WEB_BASE_URL + "/api/leaderboard";
+    private static final String HISTORY_PAGE_URL = WEB_BASE_URL + "/history.jsp";
+    private static final String LEADERBOARD_PAGE_URL = WEB_BASE_URL + "/leaderboard.jsp";
 
     // On rend la fenêtre et le fond accessibles aux autres méthodes
     // http://localhost:8080/test/TestDBServlet
@@ -276,7 +282,7 @@ public class GameLauncher {
         HttpURLConnection connection = null;
         try {
             // URL de votre API d'inscription
-            URL url = new URL("http://localhost:8080/tomcat/api/users");
+            URL url = new URL(REGISTER_PAGE_URL);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -626,15 +632,14 @@ public class GameLauncher {
         voirStatsBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                afficherEcranStatistiques();
+                ouvrirPageWeb(HISTORY_PAGE_URL);
             }
         });
 
-        // --- NOUVELLE ACTION LEADERBOARD ---
         leaderboardBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                afficherEcranLeaderboard(); // Appel de la nouvelle méthode
+                ouvrirPageWeb(LEADERBOARD_PAGE_URL);
             }
         });
 
@@ -754,7 +759,7 @@ public class GameLauncher {
         }
 
         try {
-            String statsUrl = "http://localhost:8080/tomcat/api/scores/history?limit=5&offset=0";
+            String statsUrl = SCORE_HISTORY_API_URL;
             System.out.println("[STATS] Appel API : " + statsUrl);
             URL url = new URL(statsUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -912,7 +917,7 @@ public class GameLauncher {
     // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
     private String recupererLeaderboardDuServeur() {
         try {
-            String leaderboardUrl = "http://localhost:8080/tomcat/api/leaderboard";
+            String leaderboardUrl = LEADERBOARD_API_URL;
             System.out.println("[LEADERBOARD] Appel API : " + leaderboardUrl);
             URL url = new URL(leaderboardUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
