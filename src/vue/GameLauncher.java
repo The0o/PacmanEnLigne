@@ -27,6 +27,7 @@ import java.time.format.DateTimeParseException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,10 +62,15 @@ public class GameLauncher {
     protected JComboBox<String> choixNiveau;
     protected JComboBox<String> choixDifficulte;
     protected JTextField roomIdField;
-    public static Clip clip; 
-    private static final String LOGIN_API_URL = "http://46.101.67.203:8080/tomcat/api/auth/login";
-    
-    // On rend la fenêtre et le fond accessibles aux autres méthodes  http://46.101.67.203:8080/test/TestDBServlet
+    public static Clip clip;
+
+    // private static final String WEB_BASE_URL = "http://localhost:8080/test";
+    private static final String WEB_BASE_URL = "http://46.101.67.203:8080/tomcat";
+    private static final String LOGIN_API_URL = WEB_BASE_URL + "/api/auth/login";
+    private static final String REGISTER_PAGE_URL = WEB_BASE_URL + "/api/users";
+
+    // On rend la fenêtre et le fond accessibles aux autres méthodes
+    // http://localhost:8080/test/TestDBServlet
     protected JFrame jFrame;
     protected JLabel backgroundLabel;
     protected String sessionCookie;
@@ -74,22 +80,19 @@ public class GameLauncher {
         jFrame = new JFrame();
         jFrame.setTitle("Pacman");
 
-        
         int largeurFenetre = 800;
         int hauteurFenetre = 600;
-        
-        //-------------IMAGE BACKGROUND---------------
+
+        // -------------IMAGE BACKGROUND---------------
         ImageIcon image = loadImageIcon("/image/pacmanImage.jpg", "src/image/pacmanImage.jpg", "image/pacmanImage.jpg");
         if (image.getIconWidth() != -1) {
-        	java.awt.Image img = image.getImage();
+            java.awt.Image img = image.getImage();
             java.awt.Image newImg = img.getScaledInstance(largeurFenetre, hauteurFenetre, java.awt.Image.SCALE_SMOOTH);
             backgroundLabel = new JLabel(new ImageIcon(newImg));
-        }
-        else {
+        } else {
             backgroundLabel = new JLabel();
         }
-        
-        
+
         jFrame.setPreferredSize(new Dimension(largeurFenetre, hauteurFenetre));
         backgroundLabel.setLayout(new BoxLayout(backgroundLabel, BoxLayout.Y_AXIS));
         jFrame.setContentPane(backgroundLabel);
@@ -111,7 +114,7 @@ public class GameLauncher {
         titre.setFont(new Font("Monospaced", Font.BOLD, 30));
         titre.setForeground(java.awt.Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         JLabel usernameLabel = new JLabel("Username :");
         usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         usernameLabel.setForeground(java.awt.Color.WHITE);
@@ -130,21 +133,20 @@ public class GameLauncher {
         loginButton.setFont(new Font("Monospaced", Font.BOLD, 18));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        
-     // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---// On ajoute également style=\"color: white;\" ici
+
+        // --- NOUVEAU : LIEN "CRÉER UN COMPTE" ---// On ajoute également style=\"color:
+        // white;\" ici
         JLabel creerCompteLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Créer un compte</a></html>");
         creerCompteLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
         creerCompteLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Curseur "main"
         creerCompteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         creerCompteLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        
-        
-     // Ajout de l'événement au clic
+
+        // Ajout de l'événement au clic
         creerCompteLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                afficherEcranInscription(); // On appelle la nouvelle méthode pour afficher l'écran d'inscription
+                ouvrirPageWeb(REGISTER_PAGE_URL);
             }
         });
 
@@ -156,9 +158,11 @@ public class GameLauncher {
 
                 if (verifierIdentifiants(username, password)) {
                     // Si OK, on charge le menu principal à la place
-                    afficherMenuPrincipal(); 
+                    afficherMenuPrincipal();
                 } else {
-                    JOptionPane.showMessageDialog(jFrame, "Connexion echouee. Verifiez le username, le mot de passe, ou le serveur web.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(jFrame,
+                            "Connexion echouee. Verifiez le username, le mot de passe, ou le serveur web.", "Erreur",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -181,8 +185,8 @@ public class GameLauncher {
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
-    
- // --- NOUVELLE MÉTHODE : AFFICHER LA CRÉATION DE COMPTE ---
+
+    // --- NOUVELLE MÉTHODE : AFFICHER LA CRÉATION DE COMPTE ---
     public void afficherEcranInscription() {
         backgroundLabel.removeAll(); // Vide l'écran
 
@@ -190,7 +194,7 @@ public class GameLauncher {
         titre.setFont(new Font("Monospaced", Font.BOLD, 30));
         titre.setForeground(java.awt.Color.WHITE);
         titre.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
+
         JLabel usernameLabel = new JLabel("Username");
         usernameLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         usernameLabel.setForeground(java.awt.Color.WHITE);
@@ -209,15 +213,15 @@ public class GameLauncher {
         registerButton.setFont(new Font("Monospaced", Font.BOLD, 18));
         registerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         registerButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+
         // --- LIEN POUR RETOURNER À LA CONNEXION ---
-        JLabel retourConnexionLabel = new JLabel("<html><a href=\"\" style=\"color: white;\">Retour à la connexion</a></html>");
+        JLabel retourConnexionLabel = new JLabel(
+                "<html><a href=\"\" style=\"color: white;\">Retour à la connexion</a></html>");
         retourConnexionLabel.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        retourConnexionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR)); 
+        retourConnexionLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
         retourConnexionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         retourConnexionLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        
-        
+
         retourConnexionLabel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -232,10 +236,14 @@ public class GameLauncher {
                 String password = new String(passField.getPassword());
 
                 if (inscrireUtilisateur(username, password)) {
-                    JOptionPane.showMessageDialog(jFrame, "Compte créé avec succès ! Vous pouvez maintenant vous connecter.", "Succès", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(jFrame,
+                            "Compte créé avec succès ! Vous pouvez maintenant vous connecter.", "Succès",
+                            JOptionPane.INFORMATION_MESSAGE);
                     afficherEcranConnexion(); // Retour à la connexion après succès
                 } else {
-                    JOptionPane.showMessageDialog(jFrame, "Erreur lors de la création du compte. Vérifiez que le serveur est lancé.", "Erreur", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(jFrame,
+                            "Erreur lors de la création du compte. Vérifiez que le serveur est lancé.", "Erreur",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -251,15 +259,15 @@ public class GameLauncher {
         backgroundLabel.add(passField);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 30)));
         backgroundLabel.add(registerButton);
-        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15))); 
+        backgroundLabel.add(Box.createRigidArea(new Dimension(0, 15)));
         backgroundLabel.add(retourConnexionLabel);
 
         // Rafraîchissement de la fenêtre
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
-    
- // --- NOUVELLE MÉTHODE : REQUÊTE HTTP CRÉATION DE COMPTE ---
+
+    // --- NOUVELLE MÉTHODE : REQUÊTE HTTP CRÉATION DE COMPTE ---
     private boolean inscrireUtilisateur(String username, String password) {
         if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
             return false;
@@ -268,7 +276,7 @@ public class GameLauncher {
         HttpURLConnection connection = null;
         try {
             // URL de votre API d'inscription
-            URL url = new URL("http://46.101.67.203:8080/tomcat/api/users");
+            URL url = new URL("http://localhost:8080/tomcat/api/users");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -278,8 +286,9 @@ public class GameLauncher {
             connection.setReadTimeout(15000);
 
             // Construction du corps JSON
-            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
-            
+            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password)
+                    + "\"}";
+
             try (OutputStream outputStream = connection.getOutputStream()) {
                 outputStream.write(requestBody.getBytes(StandardCharsets.UTF_8));
             }
@@ -301,7 +310,6 @@ public class GameLauncher {
 
         return false;
     }
-    
 
     // Méthode de vérification
     private boolean verifierIdentifiants(String username, String password) {
@@ -309,7 +317,7 @@ public class GameLauncher {
             return false;
         }
 
-        HttpURLConnection connection = null;	
+        HttpURLConnection connection = null;
         try {
             URL url = new URL(LOGIN_API_URL);
             System.out.println("[LOGIN] Appel API : " + LOGIN_API_URL + " username=" + username);
@@ -321,15 +329,16 @@ public class GameLauncher {
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(15000);
 
-            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
+            String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password)
+                    + "\"}";
             try (OutputStream outputStream = connection.getOutputStream()) {
                 outputStream.write(requestBody.getBytes(StandardCharsets.UTF_8));
             }
 
             int responseCode = connection.getResponseCode();
             String responseBody = readResponseBody(responseCode >= 200 && responseCode < 300
-                ? connection.getInputStream()
-                : connection.getErrorStream());
+                    ? connection.getInputStream()
+                    : connection.getErrorStream());
             System.out.println("[LOGIN] HTTP " + responseCode + " -> " + responseBody);
 
             if (responseCode >= 200 && responseCode < 300 && responseBody.contains("\"ok\":true")) {
@@ -396,13 +405,55 @@ public class GameLauncher {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    private void ouvrirPageWeb(String url) {
+        try {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(new URI(url));
+                return;
+            }
+        } catch (Exception exception) {
+            // Fallback below
+        }
+
+        try {
+            if (ouvrirPageWebViaCommande(url)) {
+                return;
+            }
+        } catch (Exception exception) {
+            // Show final error below
+        }
+
+        JOptionPane.showMessageDialog(
+                jFrame,
+                "Impossible d'ouvrir automatiquement le navigateur.\nOuvrez manuellement : " + url,
+                "Erreur",
+                JOptionPane.ERROR_MESSAGE);
+    }
+
+    private boolean ouvrirPageWebViaCommande(String url) throws IOException {
+        String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
+
+        if (os.contains("win")) {
+            Runtime.getRuntime().exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
+            return true;
+        }
+
+        if (os.contains("mac")) {
+            Runtime.getRuntime().exec(new String[] { "open", url });
+            return true;
+        }
+
+        Runtime.getRuntime().exec(new String[] { "xdg-open", url });
+        return true;
+    }
+
     // --- MÉTHODE ADAPTÉE : AFFICHER LE MENU PRINCIPAL ---
     public void afficherMenuPrincipal() {
         backgroundLabel.removeAll(); // Nettoie l'écran de connexion
 
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20))); // Marge en haut
 
-        //-------------LABEL DE TITRE-------------
+        // -------------LABEL DE TITRE-------------
         JLabel titre = new JLabel("PACMAN");
         titre.setFont(new Font("Monospaced", Font.BOLD, 20));
         titre.setForeground(java.awt.Color.WHITE);
@@ -410,7 +461,7 @@ public class GameLauncher {
         backgroundLabel.add(titre);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        //-------------CHOIX DU NIVEAU-------------
+        // -------------CHOIX DU NIVEAU-------------
         JLabel choixNiveauLabel = new JLabel("Choisir niveau :");
         choixNiveauLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         choixNiveauLabel.setForeground(java.awt.Color.WHITE);
@@ -424,29 +475,29 @@ public class GameLauncher {
         backgroundLabel.add(choixNiveau);
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        //-------------CHOIX DE LA DIFFICULTE-------------
+        // -------------CHOIX DE LA DIFFICULTE-------------
         JLabel diffculteLabel = new JLabel("Difficulté : ");
         diffculteLabel.setFont(new Font("Monospaced", Font.BOLD, 16));
         diffculteLabel.setForeground(java.awt.Color.WHITE);
         diffculteLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         backgroundLabel.add(diffculteLabel);
 
-        String[] difficultes = {"Decouverte", "Facile", "Difficile", "Extreme"};
+        String[] difficultes = { "Decouverte", "Facile", "Difficile", "Extreme" };
         choixDifficulte = new JComboBox<>(difficultes);
         choixDifficulte.setFont(new Font("Monospaced", Font.BOLD, 14));
         choixDifficulte.setMaximumSize(new Dimension(300, 40));
         choixDifficulte.setSelectedIndex(1);
         backgroundLabel.add(choixDifficulte);
-        
-        //-------------CHOIX DU MODE DE JEU-------------
+
+        // -------------CHOIX DU MODE DE JEU-------------
         JPanel modePanel = new JPanel();
         modePanel.setLayout(new BoxLayout(modePanel, BoxLayout.X_AXIS));
         modePanel.setOpaque(false);
-        
+
         JRadioButton radioSolo = new JRadioButton("Solo");
         radioSolo.setSelected(true);
         chargerNiveaux(false, false);
-        //on charge les niveaux solos la premiere fois
+        // on charge les niveaux solos la premiere fois
         radioSolo.setOpaque(false);
         radioSolo.setForeground(java.awt.Color.WHITE);
         radioSolo.setFont(new Font("Monospaced", Font.BOLD, 14));
@@ -455,7 +506,7 @@ public class GameLauncher {
         radioMulti.setOpaque(false);
         radioMulti.setForeground(java.awt.Color.WHITE);
         radioMulti.setFont(new Font("Monospaced", Font.BOLD, 14));
-        
+
         JRadioButton radioPersonnalise = new JRadioButton("Personnalisé");
         radioPersonnalise.setOpaque(false);
         radioPersonnalise.setForeground(java.awt.Color.WHITE);
@@ -470,8 +521,8 @@ public class GameLauncher {
         modePanel.add(radioMulti);
         modePanel.add(radioPersonnalise);
         backgroundLabel.add(modePanel);
-        
-        //----------PARTIE MULTIJOUEUR-----------
+
+        // ----------PARTIE MULTIJOUEUR-----------
 
         JPanel multiplayerPanel = new JPanel();
         multiplayerPanel.setLayout(new BoxLayout(multiplayerPanel, BoxLayout.X_AXIS));
@@ -516,7 +567,7 @@ public class GameLauncher {
             public void actionPerformed(ActionEvent e) {
                 multiplayerPanel.setVisible(radioMulti.isSelected());
                 chargerNiveaux(radioMulti.isSelected(), radioPersonnalise.isSelected());
-                
+
                 backgroundLabel.revalidate();
                 backgroundLabel.repaint();
             }
@@ -526,7 +577,7 @@ public class GameLauncher {
         radioMulti.addActionListener(toggleMultiplayer);
         radioPersonnalise.addActionListener(toggleMultiplayer);
 
-        //-------------BOUTON COMMENCER-------------
+        // -------------BOUTON COMMENCER-------------
         JButton startButton = new JButton("COMMENCER");
         startButton.setFont(new Font("Monospaced", Font.BOLD, 24));
         startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -544,10 +595,8 @@ public class GameLauncher {
                 }
             }
         });
-        
 
-        
-        //-------------BOUTON VOIR STATS / EDITER-------------
+        // -------------BOUTON VOIR STATS / EDITER-------------
         JPanel voirStatsEditer = new JPanel();
         voirStatsEditer.setLayout(new BoxLayout(voirStatsEditer, BoxLayout.X_AXIS));
         voirStatsEditer.setOpaque(false);
@@ -561,7 +610,7 @@ public class GameLauncher {
         voirStatsBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
         voirStatsBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
         voirStatsBouton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+
         JButton leaderboardBouton = new JButton("LEADERBOARD");
         leaderboardBouton.setFont(new Font("Monospaced", Font.BOLD, 24));
         leaderboardBouton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -577,11 +626,11 @@ public class GameLauncher {
         voirStatsBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-            	afficherEcranStatistiques();
+                afficherEcranStatistiques();
             }
         });
-        
-     // --- NOUVELLE ACTION LEADERBOARD ---
+
+        // --- NOUVELLE ACTION LEADERBOARD ---
         leaderboardBouton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -591,7 +640,7 @@ public class GameLauncher {
 
         voirStatsEditer.add(voirStatsBouton);
         voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
-        voirStatsEditer.add(leaderboardBouton);	
+        voirStatsEditer.add(leaderboardBouton);
         voirStatsEditer.add(Box.createRigidArea(new Dimension(10, 0)));
         voirStatsEditer.add(editerBouton);
 
@@ -605,13 +654,14 @@ public class GameLauncher {
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
     }
-    	
- // --- NOUVELLE MÉTHODE : AFFICHER L'ÉCRAN DES STATISTIQUES ---
+
+    // --- NOUVELLE MÉTHODE : AFFICHER L'ÉCRAN DES STATISTIQUES ---
     public void afficherEcranStatistiques() {
         backgroundLabel.removeAll();
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
 
-        String nomAffiche = (usernameConnecte != null && !usernameConnecte.isEmpty()) ? usernameConnecte : "Joueur Inconnu";
+        String nomAffiche = (usernameConnecte != null && !usernameConnecte.isEmpty()) ? usernameConnecte
+                : "Joueur Inconnu";
         JLabel titre = new JLabel("Historique de " + nomAffiche);
         titre.setFont(new Font("Monospaced", Font.BOLD, 28));
         titre.setForeground(Color.WHITE);
@@ -656,9 +706,9 @@ public class GameLauncher {
         });
     }
 
-
     private JLabel createLoadingLabel(String message) {
-        JLabel label = new JLabel("<html><div style='text-align:center; color:white; padding-top:110px;'><b>" + message + "</b></div></html>");
+        JLabel label = new JLabel("<html><div style='text-align:center; color:white; padding-top:110px;'><b>" + message
+                + "</b></div></html>");
         label.setFont(new Font("Monospaced", Font.PLAIN, 15));
         label.setForeground(Color.WHITE);
         label.setVerticalAlignment(JLabel.TOP);
@@ -697,14 +747,14 @@ public class GameLauncher {
         String get();
     }
 
- // --- NOUVELLE MÉTHODE : RÉCUPÉRER LES STATS ---
+    // --- NOUVELLE MÉTHODE : RÉCUPÉRER LES STATS ---
     private String recupererStatsDuServeur(String sessionCookie) {
         if (sessionCookie == null || sessionCookie.isEmpty()) {
             return "<div style='text-align:center;'>Erreur : vous n'etes pas connecte.</div>";
         }
 
         try {
-            String statsUrl = "http://46.101.67.203:8080/tomcat/api/scores/history?limit=5&offset=0";
+            String statsUrl = "http://localhost:8080/tomcat/api/scores/history?limit=5&offset=0";
             System.out.println("[STATS] Appel API : " + statsUrl);
             URL url = new URL(statsUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -726,10 +776,12 @@ public class GameLauncher {
                 return formatterHistoriqueScores(response.toString());
             } else if (responseCode == 401 || responseCode == 403) {
                 System.out.println("[STATS] HTTP " + responseCode + " -> acces refuse");
-                return "<div style='text-align:center;'>Acces refuse. Votre session a peut-etre expire. (Erreur " + responseCode + ")</div>";
+                return "<div style='text-align:center;'>Acces refuse. Votre session a peut-etre expire. (Erreur "
+                        + responseCode + ")</div>";
             } else {
                 System.out.println("[STATS] HTTP " + responseCode + " -> erreur serveur");
-                return "<div style='text-align:center;'>Impossible de recuperer l'historique. (Code erreur : " + responseCode + ")</div>";
+                return "<div style='text-align:center;'>Impossible de recuperer l'historique. (Code erreur : "
+                        + responseCode + ")</div>";
             }
         } catch (Exception e) {
             System.out.println("[STATS] Exception : " + e.getMessage());
@@ -742,13 +794,15 @@ public class GameLauncher {
         String bestScore = extractNumericJsonValue(json, "bestScore");
         String totalScores = extractNumericJsonValue(json, "totalScores");
 
-        Pattern itemPattern = Pattern.compile("\\{\\s*\"score\"\\s*:\\s*(\\d+)\\s*,\\s*\"createdAt\"\\s*:\\s*\"([^\"]+)\"\\s*\\}");
+        Pattern itemPattern = Pattern
+                .compile("\\{\\s*\"score\"\\s*:\\s*(\\d+)\\s*,\\s*\"createdAt\"\\s*:\\s*\"([^\"]+)\"\\s*\\}");
         Matcher matcher = itemPattern.matcher(json);
 
         StringBuilder html = new StringBuilder();
         html.append("<div style='color:white; font-family:monospace;'>");
         html.append("<div style='text-align:center; font-size:16px; margin-bottom:16px;'>");
-        html.append("<b>Meilleur score :</b> ").append(bestScore != null ? bestScore : "0").append("&nbsp;&nbsp;&nbsp;");
+        html.append("<b>Meilleur score :</b> ").append(bestScore != null ? bestScore : "0")
+                .append("&nbsp;&nbsp;&nbsp;");
         html.append("<b>Parties :</b> ").append(totalScores != null ? totalScores : "0");
         html.append("</div>");
         html.append("<table style='width:100%; border-collapse:collapse; color:white;'>");
@@ -761,9 +815,12 @@ public class GameLauncher {
         int index = 1;
         while (matcher.find()) {
             html.append("<tr>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(index++).append("</td>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>").append(matcher.group(1)).append("</b></td>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(formatterDateHumaine(matcher.group(2))).append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(index++)
+                    .append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>")
+                    .append(matcher.group(1)).append("</b></td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>")
+                    .append(formatterDateHumaine(matcher.group(2))).append("</td>");
             html.append("</tr>");
         }
 
@@ -778,9 +835,9 @@ public class GameLauncher {
 
     private String formatterDateHumaine(String dateTexte) {
         DateTimeFormatter[] inputFormats = new DateTimeFormatter[] {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         };
 
         for (DateTimeFormatter inputFormat : inputFormats) {
@@ -803,7 +860,7 @@ public class GameLauncher {
         return null;
     }
 
- // --- NOUVELLE MÉTHODE : AFFICHER LE LEADERBOARD ---
+    // --- NOUVELLE MÉTHODE : AFFICHER LE LEADERBOARD ---
     public void afficherEcranLeaderboard() {
         backgroundLabel.removeAll();
         backgroundLabel.add(Box.createRigidArea(new Dimension(0, 25)));
@@ -852,10 +909,10 @@ public class GameLauncher {
         });
     }
 
- // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
+    // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
     private String recupererLeaderboardDuServeur() {
         try {
-            String leaderboardUrl = "http://46.101.67.203:8080/tomcat/api/leaderboard";
+            String leaderboardUrl = "http://localhost:8080/tomcat/api/leaderboard";
             System.out.println("[LEADERBOARD] Appel API : " + leaderboardUrl);
             URL url = new URL(leaderboardUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -876,7 +933,8 @@ public class GameLauncher {
                 return formatterLeaderboard(response.toString());
             }
             System.out.println("[LEADERBOARD] HTTP " + responseCode + " -> erreur serveur");
-            return "<div style='text-align:center;'>Impossible de recuperer le classement. (Code erreur : " + responseCode + ")</div>";
+            return "<div style='text-align:center;'>Impossible de recuperer le classement. (Code erreur : "
+                    + responseCode + ")</div>";
         } catch (Exception e) {
             System.out.println("[LEADERBOARD] Exception : " + e.getMessage());
             e.printStackTrace();
@@ -887,7 +945,8 @@ public class GameLauncher {
     private String formatterLeaderboard(String json) {
         String totalUsers = extractNumericJsonValue(json, "totalUsers");
         String count = extractNumericJsonValue(json, "count");
-        Pattern itemPattern = Pattern.compile("\\{\\s*\"rank\"\\s*:\\s*(\\d+)\\s*,\\s*\"username\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"bestScore\"\\s*:\\s*(\\d+)\\s*\\}");
+        Pattern itemPattern = Pattern.compile(
+                "\\{\\s*\"rank\"\\s*:\\s*(\\d+)\\s*,\\s*\"username\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"bestScore\"\\s*:\\s*(\\d+)\\s*\\}");
         Matcher matcher = itemPattern.matcher(json);
 
         StringBuilder html = new StringBuilder();
@@ -907,14 +966,18 @@ public class GameLauncher {
         while (matcher.find()) {
             hasData = true;
             html.append("<tr>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>#").append(matcher.group(1)).append("</b></td>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(matcher.group(2)).append("</td>");
-            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>").append(matcher.group(3)).append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'><b>#")
+                    .append(matcher.group(1)).append("</b></td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>")
+                    .append(matcher.group(2)).append("</td>");
+            html.append("<td style='padding:8px; border-bottom:1px solid rgba(255,255,255,0.18);'>")
+                    .append(matcher.group(3)).append("</td>");
             html.append("</tr>");
         }
 
         if (!hasData) {
-            html.append("<tr><td colspan='3' style='padding:12px; text-align:center;'>Aucun joueur classe pour le moment.</td></tr>");
+            html.append(
+                    "<tr><td colspan='3' style='padding:12px; text-align:center;'>Aucun joueur classe pour le moment.</td></tr>");
         }
 
         html.append("</table>");
@@ -942,7 +1005,8 @@ public class GameLauncher {
         File musicPath = new File("src/music/audio.wav");
         AudioInputStream audioInputStream;
         try {
-            if (clip != null && clip.isRunning()) return;
+            if (clip != null && clip.isRunning())
+                return;
             audioInputStream = AudioSystem.getAudioInputStream(musicPath);
             clip = AudioSystem.getClip();
             clip.open(audioInputStream);
@@ -956,93 +1020,95 @@ public class GameLauncher {
     }
 
     public void chargerNiveaux(boolean multi, boolean personnalise) {
-    	ArrayList<String> listeNiveauxSolo = new ArrayList<String>(List.of(
-    			"bigCorners.lay",
-    			"bigMaze.lay",
-    			"bigSafeSearch.lay",
-    			"bigSearch.lay",
-    			"bigSearch_onePacman_oneGhost.lay",
-    			"boxSearch.lay",
-    			"capsuleClassic.lay",
-    			"contestClassic.lay",
-    			"contoursMaze.lay",
-    			"greedySearch.lay",
-    			"mediumClassic.lay",
-    			"mediumClassic_onePacman.lay",
-    			"mediumCorners.lay",
-    			"mediumDottedMaze.lay",
-    			"mediumMaze.lay",
-    			"mediumSafeSearch.lay",
-    			"mediumScaryMaze.lay",
-    			"mediumSearch.lay",
-    			"minimaxClassic.lay",
-    			"oddSearch.lay",
-    			"openClassic.lay",
-    			"openMaze.lay",
-    			"openSearch.lay",
-    			"originalClassic.lay",
-    			"originalClassic_oneFood.lay",
-    			"smallClassic.lay",
-    			"smallMaze.lay",
-    			"smallSafeSearch.lay",
-    			"smallSearch.lay",
-    			"test.lay",
-    			"testClassic.lay",
-    			"testMaze.lay",
-    			"testSearch.lay",
-    			"tinyCorners.lay",
-    			"tinyMaze.lay",
-    			"tinySafeSearch.lay",
-    			"tinySearch.lay",
-    			"trappedClassic.lay",
-    			"trickyClassic.lay",
-    			"trickySearch.lay"));
-    	ArrayList<String> listeNiveauxMultis = new ArrayList<String>(List.of(
-    			"bigSearch_twoPacmans.lay",
-    			"bigSearch_twoPacmans_oneGhost.lay",
-    			"mediumClassic_fivePacmans.lay",
-    			"mediumClassic_manyPacmans.lay",
-    			"mediumClassic_twoPacmans.lay",
-    			"originalClassic_oneFood_fivePacmans.lay",
-    			"originalClassic_oneFood_TenPacmans.lay",
-    			"originalClassic_oneFood_twoPacmans.lay"));
-    	choixNiveau.removeAllItems();
+        ArrayList<String> listeNiveauxSolo = new ArrayList<String>(List.of(
+                "bigCorners.lay",
+                "bigMaze.lay",
+                "bigSafeSearch.lay",
+                "bigSearch.lay",
+                "bigSearch_onePacman_oneGhost.lay",
+                "boxSearch.lay",
+                "capsuleClassic.lay",
+                "contestClassic.lay",
+                "contoursMaze.lay",
+                "greedySearch.lay",
+                "mediumClassic.lay",
+                "mediumClassic_onePacman.lay",
+                "mediumCorners.lay",
+                "mediumDottedMaze.lay",
+                "mediumMaze.lay",
+                "mediumSafeSearch.lay",
+                "mediumScaryMaze.lay",
+                "mediumSearch.lay",
+                "minimaxClassic.lay",
+                "oddSearch.lay",
+                "openClassic.lay",
+                "openMaze.lay",
+                "openSearch.lay",
+                "originalClassic.lay",
+                "originalClassic_oneFood.lay",
+                "smallClassic.lay",
+                "smallMaze.lay",
+                "smallSafeSearch.lay",
+                "smallSearch.lay",
+                "test.lay",
+                "testClassic.lay",
+                "testMaze.lay",
+                "testSearch.lay",
+                "tinyCorners.lay",
+                "tinyMaze.lay",
+                "tinySafeSearch.lay",
+                "tinySearch.lay",
+                "trappedClassic.lay",
+                "trickyClassic.lay",
+                "trickySearch.lay"));
+        ArrayList<String> listeNiveauxMultis = new ArrayList<String>(List.of(
+                "bigSearch_twoPacmans.lay",
+                "bigSearch_twoPacmans_oneGhost.lay",
+                "mediumClassic_fivePacmans.lay",
+                "mediumClassic_manyPacmans.lay",
+                "mediumClassic_twoPacmans.lay",
+                "originalClassic_oneFood_fivePacmans.lay",
+                "originalClassic_oneFood_TenPacmans.lay",
+                "originalClassic_oneFood_twoPacmans.lay"));
+        choixNiveau.removeAllItems();
         File folder = new File("src/layouts");
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.endsWith(".lay"));
             if (files.length > 0) {
-            	/*
-            	 * En fonction du radio button selectionne :
-            	 * soit  c'est en mode solo, mode multi, ou mode personnalise
-            	 * pour l'instant on peut pas faire de personnalise en multi
-            	 */
-            	if (personnalise) {
-            		for (File file : files) {
-            			if (!listeNiveauxSolo.contains(file.getName()) && !listeNiveauxMultis.contains(file.getName())) {
-            				choixNiveau.addItem(file.getName());
-            			}
-            		}
-            	}
-            	else if (multi) {
-            		for (String niveau : listeNiveauxMultis) {
-                		choixNiveau.addItem(niveau);
-            		}
-            	}
-            	else {
-            		for (String niveau : listeNiveauxSolo) {
-                		choixNiveau.addItem(niveau);
-            		}
-            	}
+                /*
+                 * En fonction du radio button selectionne :
+                 * soit c'est en mode solo, mode multi, ou mode personnalise
+                 * pour l'instant on peut pas faire de personnalise en multi
+                 */
+                if (personnalise) {
+                    for (File file : files) {
+                        if (!listeNiveauxSolo.contains(file.getName())
+                                && !listeNiveauxMultis.contains(file.getName())) {
+                            choixNiveau.addItem(file.getName());
+                        }
+                    }
+                } else if (multi) {
+                    for (String niveau : listeNiveauxMultis) {
+                        choixNiveau.addItem(niveau);
+                    }
+                } else {
+                    for (String niveau : listeNiveauxSolo) {
+                        choixNiveau.addItem(niveau);
+                    }
+                }
             }
         }
     }
 
     protected void actionCreerRoom() {
-        /*String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
-        if (ipServeur == null || ipServeur.trim().isEmpty()) {
-            return;
-        }*/
-       String ipServeur = "46.101.67.203";
+        /*
+         * String ipServeur = JOptionPane.showInputDialog(jFrame,
+         * "Entrez l'adresse IP du serveur :", "localhost");
+         * if (ipServeur == null || ipServeur.trim().isEmpty()) {
+         * return;
+         * }
+         */
+        String ipServeur = "localhost";
 
         String roomId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -1052,10 +1118,10 @@ public class GameLauncher {
 
         try {
             // NOUVEAU : Passage de usernameConnecte
-        	new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie, usernameConnecte);
-        	new RoomWindow(roomId);
-        	jFrame.dispose(); 
-            
+            new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie, usernameConnecte);
+            new RoomWindow(roomId);
+            jFrame.dispose();
+
         } catch (Exception e) {
         }
     }
@@ -1063,17 +1129,20 @@ public class GameLauncher {
     protected void actionRejoindreRoom() {
         String roomId = roomIdField.getText().trim();
 
-        /*String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
-        if (ipServeur == null || ipServeur.trim().isEmpty()) {
-            return; 
-        }*/
-       String ipServeur = "46.101.67.203";
+        /*
+         * String ipServeur = JOptionPane.showInputDialog(jFrame,
+         * "Entrez l'adresse IP du serveur :", "localhost");
+         * if (ipServeur == null || ipServeur.trim().isEmpty()) {
+         * return;
+         * }
+         */
+        String ipServeur = "localhost";
 
         try {
             // NOUVEAU : Passage de usernameConnecte
             new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie, usernameConnecte);
             jFrame.dispose();
-            
+
         } catch (Exception e) {
         }
     }
@@ -1084,19 +1153,17 @@ public class GameLauncher {
 
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = getValeurDifficulte(difficulte);
-        
+
         new ControllerPacmanGame(path, diff);
     }
 
     protected double getValeurDifficulte(int index) {
         if (index == 0) {
-        	return 0.1;
-        }
-        else if (index == 2) {
-        	return 0.7;
-        }
-        else if (index == 3) {
-        	return 0.9;
+            return 0.1;
+        } else if (index == 2) {
+            return 0.7;
+        } else if (index == 3) {
+            return 0.9;
         }
         return 0.4;
     }
