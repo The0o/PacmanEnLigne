@@ -290,6 +290,7 @@ public class GameLauncher {
                 return true;
             }
         } catch (IOException exception) {
+            System.out.println("[LOGIN] Exception : " + exception.getMessage());
             exception.printStackTrace();
         } finally {
             if (connection != null) {
@@ -310,6 +311,7 @@ public class GameLauncher {
         HttpURLConnection connection = null;	
         try {
             URL url = new URL(LOGIN_API_URL);
+            System.out.println("[LOGIN] Appel API : " + LOGIN_API_URL + " username=" + username);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -327,13 +329,18 @@ public class GameLauncher {
             String responseBody = readResponseBody(responseCode >= 200 && responseCode < 300
                 ? connection.getInputStream()
                 : connection.getErrorStream());
+            System.out.println("[LOGIN] HTTP " + responseCode + " -> " + responseBody);
 
             if (responseCode >= 200 && responseCode < 300 && responseBody.contains("\"ok\":true")) {
                 sessionCookie = extractSessionCookie(connection.getHeaderFields());
                 usernameConnecte = extractJsonValue(responseBody, "username");
+                System.out.println("[LOGIN] Succes pour user=" + usernameConnecte + " cookie=" + sessionCookie);
                 return true;
             }
+
+            System.out.println("[LOGIN] Echec authentification pour username=" + username);
         } catch (IOException exception) {
+            System.out.println("[LOGIN] Exception : " + exception.getMessage());
             exception.printStackTrace();
         } finally {
             if (connection != null) {
@@ -656,7 +663,9 @@ public class GameLauncher {
         }
 
         try {
-            URL url = new URL("http://localhost:8080/test/api/scores/history?limit=5&offset=0");
+            String statsUrl = "http://localhost:8080/test/api/scores/history?limit=5&offset=0";
+            System.out.println("[STATS] Appel API : " + statsUrl);
+            URL url = new URL(statsUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
@@ -672,13 +681,17 @@ public class GameLauncher {
                     response.append(inputLine);
                 }
                 in.close();
+                System.out.println("[STATS] HTTP " + responseCode + " -> " + response);
                 return formatterHistoriqueScores(response.toString());
             } else if (responseCode == 401 || responseCode == 403) {
+                System.out.println("[STATS] HTTP " + responseCode + " -> acces refuse");
                 return "<div style='text-align:center;'>Acces refuse. Votre session a peut-etre expire. (Erreur " + responseCode + ")</div>";
             } else {
+                System.out.println("[STATS] HTTP " + responseCode + " -> erreur serveur");
                 return "<div style='text-align:center;'>Impossible de recuperer l'historique. (Code erreur : " + responseCode + ")</div>";
             }
         } catch (Exception e) {
+            System.out.println("[STATS] Exception : " + e.getMessage());
             e.printStackTrace();
             return "<div style='text-align:center;'>Erreur de connexion au serveur distant.</div>";
         }
@@ -801,7 +814,9 @@ public class GameLauncher {
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
     private String recupererLeaderboardDuServeur() {
         try {
-            URL url = new URL("http://localhost:8080/test/api/leaderboard");
+            String leaderboardUrl = "http://localhost:8080/test/api/leaderboard";
+            System.out.println("[LEADERBOARD] Appel API : " + leaderboardUrl);
+            URL url = new URL(leaderboardUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
@@ -816,10 +831,13 @@ public class GameLauncher {
                     response.append(inputLine);
                 }
                 in.close();
+                System.out.println("[LEADERBOARD] HTTP " + responseCode + " -> " + response);
                 return formatterLeaderboard(response.toString());
             }
+            System.out.println("[LEADERBOARD] HTTP " + responseCode + " -> erreur serveur");
             return "<div style='text-align:center;'>Impossible de recuperer le classement. (Code erreur : " + responseCode + ")</div>";
         } catch (Exception e) {
+            System.out.println("[LEADERBOARD] Exception : " + e.getMessage());
             e.printStackTrace();
             return "<div style='text-align:center;'>Erreur de connexion au serveur distant.</div>";
         }
