@@ -1080,55 +1080,14 @@ public class GameLauncher {
 
     public void chargerNiveaux(boolean multi, boolean personnalise) {
         ArrayList<String> listeNiveauxSolo = new ArrayList<String>(List.of(
-                "bigCorners.lay",
-                "bigMaze.lay",
-                "bigSafeSearch.lay",
-                "bigSearch.lay",
-                "bigSearch_onePacman_oneGhost.lay",
-                "boxSearch.lay",
-                "capsuleClassic.lay",
-                "contestClassic.lay",
-                "contoursMaze.lay",
-                "greedySearch.lay",
-                "mediumClassic.lay",
-                "mediumClassic_onePacman.lay",
-                "mediumCorners.lay",
-                "mediumDottedMaze.lay",
-                "mediumMaze.lay",
-                "mediumSafeSearch.lay",
-                "mediumScaryMaze.lay",
-                "mediumSearch.lay",
-                "minimaxClassic.lay",
-                "oddSearch.lay",
-                "openClassic.lay",
-                "openMaze.lay",
-                "openSearch.lay",
-                "originalClassic.lay",
-                "originalClassic_oneFood.lay",
-                "smallClassic.lay",
-                "smallMaze.lay",
-                "smallSafeSearch.lay",
-                "smallSearch.lay",
-                "test.lay",
-                "testClassic.lay",
-                "testMaze.lay",
-                "testSearch.lay",
-                "tinyCorners.lay",
-                "tinyMaze.lay",
-                "tinySafeSearch.lay",
-                "tinySearch.lay",
-                "trappedClassic.lay",
-                "trickyClassic.lay",
-                "trickySearch.lay"));
+                "Solo_1.lay",
+                "Solo_2.lay",
+                "Solo_3.lay",
+                "Solo_4.lay"));
         ArrayList<String> listeNiveauxMultis = new ArrayList<String>(List.of(
-                "bigSearch_twoPacmans.lay",
-                "bigSearch_twoPacmans_oneGhost.lay",
-                "mediumClassic_fivePacmans.lay",
-                "mediumClassic_manyPacmans.lay",
-                "mediumClassic_twoPacmans.lay",
-                "originalClassic_oneFood_fivePacmans.lay",
-                "originalClassic_oneFood_TenPacmans.lay",
-                "originalClassic_oneFood_twoPacmans.lay"));
+                "Duo_1.lay",
+                "Duo_2.lay",
+                "Duo_3.lay"));
         choixNiveau.removeAllItems();
         File folder = new File("src/layouts");
         if (folder.exists() && folder.isDirectory()) {
