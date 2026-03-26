@@ -49,6 +49,7 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.JTextField;
 
 import clientMain.GameClient;
@@ -274,7 +275,7 @@ public class GameLauncher {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("Accept", "application/json");
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setReadTimeout(15000);
 
             // Construction du corps JSON
             String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
@@ -318,7 +319,7 @@ public class GameLauncher {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("Accept", "application/json");
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setReadTimeout(15000);
 
             String requestBody = "{\"username\":\"" + escapeJson(username) + "\",\"password\":\"" + escapeJson(password) + "\"}";
             try (OutputStream outputStream = connection.getOutputStream()) {
@@ -625,15 +626,8 @@ public class GameLauncher {
         statsPanel.setPreferredSize(new Dimension(640, 320));
         statsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel statsLabel = new JLabel("<html>" + recupererStatsDuServeur(sessionCookie) + "</html>");
-        statsLabel.setFont(new Font("Monospaced", Font.PLAIN, 15));
-        statsLabel.setForeground(Color.WHITE);
-        statsLabel.setVerticalAlignment(JLabel.TOP);
-
-        JScrollPane scrollPane = new JScrollPane(statsLabel);
-        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
+        JLabel statsLabel = createLoadingLabel("Chargement de l'historique...");
+        JScrollPane scrollPane = createContentScrollPane(statsLabel);
 
         statsPanel.add(scrollPane, BorderLayout.CENTER);
         backgroundLabel.add(statsPanel);
@@ -653,8 +647,55 @@ public class GameLauncher {
         backgroundLabel.add(retourBouton);
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
+
+        chargerHtmlAsync(statsLabel, new HtmlSupplier() {
+            @Override
+            public String get() {
+                return recupererStatsDuServeur(sessionCookie);
+            }
+        });
     }
 
+
+    private JLabel createLoadingLabel(String message) {
+        JLabel label = new JLabel("<html><div style='text-align:center; color:white; padding-top:110px;'><b>" + message + "</b></div></html>");
+        label.setFont(new Font("Monospaced", Font.PLAIN, 15));
+        label.setForeground(Color.WHITE);
+        label.setVerticalAlignment(JLabel.TOP);
+        return label;
+    }
+
+    private JScrollPane createContentScrollPane(JLabel contentLabel) {
+        JScrollPane scrollPane = new JScrollPane(contentLabel);
+        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        return scrollPane;
+    }
+
+    private void chargerHtmlAsync(JLabel targetLabel, HtmlSupplier supplier) {
+        Thread loader = new Thread(() -> {
+            String html;
+            try {
+                html = supplier.get();
+            } catch (Exception exception) {
+                html = "<div style='text-align:center;'>Erreur inattendue : " + exception.getMessage() + "</div>";
+            }
+
+            final String finalHtml = html;
+            SwingUtilities.invokeLater(() -> {
+                targetLabel.setText("<html>" + finalHtml + "</html>");
+                targetLabel.revalidate();
+                targetLabel.repaint();
+            });
+        });
+        loader.setDaemon(true);
+        loader.start();
+    }
+
+    private interface HtmlSupplier {
+        String get();
+    }
 
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LES STATS ---
     private String recupererStatsDuServeur(String sessionCookie) {
@@ -669,7 +710,7 @@ public class GameLauncher {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setReadTimeout(15000);
             connection.setRequestProperty("Cookie", sessionCookie);
 
             int responseCode = connection.getResponseCode();
@@ -781,15 +822,8 @@ public class GameLauncher {
         leaderboardPanel.setPreferredSize(new Dimension(640, 320));
         leaderboardPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel leaderboardLabel = new JLabel("<html>" + recupererLeaderboardDuServeur() + "</html>");
-        leaderboardLabel.setFont(new Font("Monospaced", Font.PLAIN, 15));
-        leaderboardLabel.setForeground(Color.WHITE);
-        leaderboardLabel.setVerticalAlignment(JLabel.TOP);
-
-        JScrollPane scrollPane = new JScrollPane(leaderboardLabel);
-        scrollPane.setBorder(javax.swing.BorderFactory.createEmptyBorder(18, 18, 18, 18));
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setOpaque(false);
+        JLabel leaderboardLabel = createLoadingLabel("Chargement du classement...");
+        JScrollPane scrollPane = createContentScrollPane(leaderboardLabel);
 
         leaderboardPanel.add(scrollPane, BorderLayout.CENTER);
         backgroundLabel.add(leaderboardPanel);
@@ -809,6 +843,13 @@ public class GameLauncher {
         backgroundLabel.add(retourBouton);
         backgroundLabel.revalidate();
         backgroundLabel.repaint();
+
+        chargerHtmlAsync(leaderboardLabel, new HtmlSupplier() {
+            @Override
+            public String get() {
+                return recupererLeaderboardDuServeur();
+            }
+        });
     }
 
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
@@ -820,7 +861,7 @@ public class GameLauncher {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
+            connection.setReadTimeout(15000);
 
             int responseCode = connection.getResponseCode();
             if (responseCode >= 200 && responseCode < 300) {
