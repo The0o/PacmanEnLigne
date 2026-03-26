@@ -30,6 +30,10 @@ public class LaunchServer {
             }
         }
     }
+    
+    public void retirerSession(SessionJeu session) {
+        listeSessions.remove(session);
+    }
 
     public synchronized void assignerClientASession(ConnectionToClient client, InitialisationPartieModele init) {
         SessionJeu sessionTrouvee = null;
@@ -65,7 +69,7 @@ public class LaunchServer {
             	 * de parties qui correspondent a ces criteres (difficulte, layout, nb de joueur)
             	*/
                 try {
-                    sessionTrouvee = new SessionJeu(init);
+                    sessionTrouvee = new SessionJeu(init, this);
                     listeSessions.add(sessionTrouvee);
                 } catch (Exception e) {}
             }
@@ -73,7 +77,7 @@ public class LaunchServer {
         } else if (init.isCreation()) {
             // CAS 2 : Le joueur veut créer une room privée
             try {
-                sessionTrouvee = new SessionJeu(init);
+                sessionTrouvee = new SessionJeu(init, this);
                 listeSessions.add(sessionTrouvee);
             } catch (Exception e) {
             }

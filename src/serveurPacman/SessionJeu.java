@@ -20,13 +20,15 @@ public class SessionJeu {
     private boolean isRandom;
     private int nombreFoodInitial;
     private Gson gson = new Gson();
+    private LaunchServer serveur;
 
-    public SessionJeu(InitialisationPartieModele init) throws Exception {
+    public SessionJeu(InitialisationPartieModele init, LaunchServer serveur) throws Exception {
         this.clientList = new CopyOnWriteArrayList<>();
         this.niveau = init.getChoixNiveau();
         this.difficulte = init.getDifficulte();
         this.roomId = init.getRoomId(); 
         this.isRandom = init.isRandom();
+        this.serveur = serveur;
         
         this.vraiJeu = new PacmanGame(1000, this.niveau, this.difficulte);
         this.vraiJeu.init();
@@ -38,7 +40,7 @@ public class SessionJeu {
         partieDemarree = true;
         
         Thread gameLoop = new Thread(() -> {
-            while(vraiJeu.gameContinue()) {
+            while(vraiJeu.isRunning) {
                 try {
                     vraiJeu.step();
                     GameStateModel gameState = pacmanGameToGameStateModel(vraiJeu);
@@ -50,6 +52,7 @@ public class SessionJeu {
                 }
             }
             sendScore();
+            serveur.retirerSession(this);
         });
         gameLoop.start();
     }
@@ -124,6 +127,9 @@ public class SessionJeu {
 
     public void retirerClient(ConnectionToClient client) {
         clientList.remove(client);
+        if (clientList.isEmpty()) {
+            serveur.retirerSession(this);
+        }
     }
     
     public void sendToOne(int index, String message) throws IndexOutOfBoundsException {
