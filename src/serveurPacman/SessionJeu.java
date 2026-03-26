@@ -11,6 +11,7 @@ import model.InitialisationPartieModele;
 public class SessionJeu {
     
     private CopyOnWriteArrayList<ConnectionToClient> clientList;
+    private CopyOnWriteArrayList<ConnectionToClient> participants;
     private boolean partieDemarree = false;
     private PacmanGame vraiJeu;
     private int nombreJoueursAttendus;
@@ -24,6 +25,7 @@ public class SessionJeu {
 
     public SessionJeu(InitialisationPartieModele init, LaunchServer serveur) throws Exception {
         this.clientList = new CopyOnWriteArrayList<>();
+        this.participants = new CopyOnWriteArrayList<>();
         this.niveau = init.getChoixNiveau();
         this.difficulte = init.getDifficulte();
         this.roomId = init.getRoomId(); 
@@ -68,7 +70,8 @@ public class SessionJeu {
 		}
 		score = Math.max(0, score);
 
-		for (ConnectionToClient client : clientList) {
+		System.out.println("[SCORE] Fin de partie niveau=" + niveau + " score=" + score + " participants=" + participants.size());
+		for (ConnectionToClient client : participants) {
 			client.envoyerScore(score);
 		}
 	}
@@ -121,6 +124,9 @@ public class SessionJeu {
 
     public void ajouterClient(ConnectionToClient client) {
         clientList.add(client);
+        if (!participants.contains(client)) {
+            participants.add(client);
+        }
         client.assignerPacman();
         GameStateModel stateModel = pacmanGameToGameStateModel(vraiJeu);
         client.write(gson.toJson(stateModel));

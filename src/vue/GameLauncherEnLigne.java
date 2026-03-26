@@ -13,7 +13,7 @@ public class GameLauncherEnLigne extends GameLauncher {
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
             return;
         }*/
-        String ipServeur = "46.101.67.203";
+        String ipServeur = "localhost";
         
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = 0.4;
@@ -27,7 +27,8 @@ public class GameLauncherEnLigne extends GameLauncher {
         
         try {
             // NOUVEAU : Passage de usernameConnecte
-        	new GameClient(ipServeur, 9081, null, "src/layouts/" + choixNiveau.getSelectedItem(), diff, sessionCookie, usernameConnecte);
+        	new GameClient(ipServeur, 9081, null, "src/layouts/" + choixNiveau.getSelectedItem(), diff, sessionCookie,
+                    usernameConnecte, getScoreApiUrl());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Impossible de se connecter au serveur " + ipServeur);
         }

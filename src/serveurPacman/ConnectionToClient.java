@@ -18,7 +18,8 @@ import model.Pacman;
 
 public class ConnectionToClient {
 
-    private static final String SCORE_API_URL = "http://46.101.67.203:8080/tomcat/api/scores";
+    // private static final String DEFAULT_SCORE_API_URL = "http://46.101.67.203:8080//api/scores";
+    private static final String DEFAULT_SCORE_API_URL = "http://localhost:8080//test/api/scores";
 
     private BufferedReader in;
     private PrintWriter out;
@@ -28,6 +29,7 @@ public class ConnectionToClient {
     private LaunchServer serveur;
     private String sessionCookie;
     private String username; // NOUVEAU : On stocke le pseudo
+    private String scoreApiUrl = DEFAULT_SCORE_API_URL;
     private Gson gson = new Gson();
 
     public ConnectionToClient(Socket socket, LaunchServer serveur) throws IOException {
@@ -48,6 +50,9 @@ public class ConnectionToClient {
                                 InitialisationPartieModele init = gson.fromJson(line, InitialisationPartieModele.class);
                                 sessionCookie = init.getSessionCookie();
                                 username = init.getUsername(); // NOUVEAU
+                                if (init.getScoreApiUrl() != null && !init.getScoreApiUrl().trim().isEmpty()) {
+                                    scoreApiUrl = init.getScoreApiUrl().trim();
+                                }
                                 serveur.assignerClientASession(ConnectionToClient.this, init);
                                 isInitialized = true;
                                 InitialisationPartieModele params = new InitialisationPartieModele(session.getNiveau(),
@@ -105,12 +110,13 @@ public class ConnectionToClient {
 
     public void envoyerScore(int score) {
         if (sessionCookie == null || sessionCookie.isEmpty()) {
+            System.out.println("[SCORE] Aucun cookie de session pour user=" + username + ", score non envoye.");
             return;
         }
 
         HttpURLConnection connection = null;
         try {
-            URL url = new URL(SCORE_API_URL);
+            URL url = new URL(scoreApiUrl);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -126,8 +132,10 @@ public class ConnectionToClient {
             }
 
             int responseCode = connection.getResponseCode();
-            readResponseBody(connection);
+            String responseBody = readResponseBody(connection);
+            System.out.println("[SCORE] user=" + username + " HTTP " + responseCode + " -> " + responseBody);
         } catch (IOException e) {
+            System.out.println("[SCORE] Echec envoi score pour user=" + username + " : " + e.getMessage());
             e.printStackTrace();
         } finally {
             if (connection != null) {

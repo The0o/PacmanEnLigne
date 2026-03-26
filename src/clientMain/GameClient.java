@@ -26,10 +26,15 @@ public class GameClient {
     }
 
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String sessionCookie, String username) throws IOException {
+    	this(IPAdress, port, viewGame, choixNiveau, difficulte, sessionCookie, username, null);
+    }
+
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String sessionCookie, String username, String scoreApiUrl) throws IOException {
     	this.viewGame = viewGame;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
     	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, sessionCookie, username);
+    	jeuParamInit.setScoreApiUrl(scoreApiUrl);
         this.send(gson.toJson(jeuParamInit));
     }
     
@@ -38,10 +43,15 @@ public class GameClient {
     }
 
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie, String username) throws IOException {
+    	this(IPAdress, port, viewGame, choixNiveau, difficulte, roomId, isCreation, isRandom, sessionCookie, username, null);
+    }
+
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie, String username, String scoreApiUrl) throws IOException {
     	this.viewGame = viewGame;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
     	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, roomId, isCreation, isRandom, sessionCookie, username);
+    	jeuParamInit.setScoreApiUrl(scoreApiUrl);
         this.send(gson.toJson(jeuParamInit));
     }
     

@@ -115,6 +115,10 @@ public class GameLauncher {
         jFrame.setVisible(true);
     }
 
+    protected String getScoreApiUrl() {
+        return WEB_BASE_URL + "/api/scores";
+    }
+
     // --- NOUVELLE MÉTHODE : AFFICHER LA CONNEXION ---
     public void afficherEcranConnexion() {
         backgroundLabel.removeAll(); // Vide l'écran
@@ -1136,7 +1140,8 @@ public class GameLauncher {
 
         try {
             // NOUVEAU : Passage de usernameConnecte
-            new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie, usernameConnecte);
+            new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie, usernameConnecte,
+                    getScoreApiUrl());
             new RoomWindow(roomId);
             jFrame.dispose();
 
@@ -1158,7 +1163,8 @@ public class GameLauncher {
 
         try {
             // NOUVEAU : Passage de usernameConnecte
-            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie, usernameConnecte);
+            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie, usernameConnecte,
+                    getScoreApiUrl());
             jFrame.dispose();
 
         } catch (Exception e) {

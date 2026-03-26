@@ -21,6 +21,9 @@ public class InitialisationPartieModele {
 	public String getUsername() {
 		return username;
 	}
+	public String getScoreApiUrl() {
+		return scoreApiUrl;
+	}
 	public boolean isCreation() {
 		return isCreation;
 	}
@@ -56,6 +59,11 @@ public class InitialisationPartieModele {
 	private String roomId;
 	private String sessionCookie;
 	private String username;
+	private String scoreApiUrl;
 	private boolean isCreation; // utilise que quand isRandom est false, c'est quand on cree la room
 	private boolean isRandom;   // si isRandom est true, ca veut dire qu'il fait une partie sans room
+
+	public void setScoreApiUrl(String scoreApiUrl) {
+		this.scoreApiUrl = scoreApiUrl;
+	}
 }
