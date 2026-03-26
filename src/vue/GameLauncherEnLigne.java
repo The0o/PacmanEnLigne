@@ -8,11 +8,12 @@ public class GameLauncherEnLigne extends GameLauncher {
     
     @Override
     public void lancerJeu() throws Exception {
-        String ipServeur = JOptionPane.showInputDialog(null, "Entrez l'adresse IP du serveur :", "localhost");
+        /*String ipServeur = JOptionPane.showInputDialog(null, "Entrez l'adresse IP du serveur :", "localhost");
         
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
             return;
-        }
+        }*/
+       String ipServeur = "46.101.67.203";
         
         int difficulte = choixDifficulte.getSelectedIndex();
         double diff = 0.4;

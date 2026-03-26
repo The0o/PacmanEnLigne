@@ -18,7 +18,7 @@ import model.Pacman;
 
 public class ConnectionToClient {
 
-    private static final String SCORE_API_URL = "http://localhost:8080/test/api/scores";
+    private static final String SCORE_API_URL = "http://46.101.67.203:8080/tomcat/api/scores";
 
     private BufferedReader in;
     private PrintWriter out;

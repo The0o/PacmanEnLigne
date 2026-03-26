@@ -62,9 +62,9 @@ public class GameLauncher {
     protected JComboBox<String> choixDifficulte;
     protected JTextField roomIdField;
     public static Clip clip; 
-    private static final String LOGIN_API_URL = "http://localhost:8080/test/api/auth/login";
+    private static final String LOGIN_API_URL = "http://46.101.67.203:8080/tomcat/api/auth/login";
     
-    // On rend la fenêtre et le fond accessibles aux autres méthodes  http://localhost:8080/test/TestDBServlet
+    // On rend la fenêtre et le fond accessibles aux autres méthodes  http://46.101.67.203:8080/test/TestDBServlet
     protected JFrame jFrame;
     protected JLabel backgroundLabel;
     protected String sessionCookie;
@@ -268,7 +268,7 @@ public class GameLauncher {
         HttpURLConnection connection = null;
         try {
             // URL de votre API d'inscription
-            URL url = new URL("http://localhost:8080/test/api/users");
+            URL url = new URL("http://46.101.67.203:8080/tomcat/api/users");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setDoOutput(true);
@@ -704,7 +704,7 @@ public class GameLauncher {
         }
 
         try {
-            String statsUrl = "http://localhost:8080/test/api/scores/history?limit=5&offset=0";
+            String statsUrl = "http://46.101.67.203:8080/tomcat/api/scores/history?limit=5&offset=0";
             System.out.println("[STATS] Appel API : " + statsUrl);
             URL url = new URL(statsUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -855,7 +855,7 @@ public class GameLauncher {
  // --- NOUVELLE MÉTHODE : RÉCUPÉRER LE LEADERBOARD ---
     private String recupererLeaderboardDuServeur() {
         try {
-            String leaderboardUrl = "http://localhost:8080/test/api/leaderboard";
+            String leaderboardUrl = "http://46.101.67.203:8080/tomcat/api/leaderboard";
             System.out.println("[LEADERBOARD] Appel API : " + leaderboardUrl);
             URL url = new URL(leaderboardUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -1038,10 +1038,11 @@ public class GameLauncher {
     }
 
     protected void actionCreerRoom() {
-        String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
+        /*String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
             return;
-        }
+        }*/
+       String ipServeur = "46.101.67.203";
 
         String roomId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -1062,10 +1063,11 @@ public class GameLauncher {
     protected void actionRejoindreRoom() {
         String roomId = roomIdField.getText().trim();
 
-        String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
+        /*String ipServeur = JOptionPane.showInputDialog(jFrame, "Entrez l'adresse IP du serveur :", "localhost");
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
             return; 
-        }
+        }*/
+       String ipServeur = "46.101.67.203";
 
         try {
             // NOUVEAU : Passage de usernameConnecte
