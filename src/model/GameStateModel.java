@@ -12,6 +12,14 @@ public class GameStateModel {
 	private ArrayList<String> pacmansUsernames = new ArrayList<>(); // NOUVEAU
 	private ArrayList<PositionAgent> positionsFantomes = new ArrayList<>();
 	private boolean effraye;
+	private boolean isRunning;
+    
+	public void setRunning(boolean running) {
+		this.isRunning = running;
+	}
+	public boolean isRunning() {
+		return isRunning;
+	}
     
 	public void setMaze(Maze maze) {
 		this.maze = maze;

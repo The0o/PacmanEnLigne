@@ -115,6 +115,7 @@ public class SessionJeu {
 		} else {
 			stateModel.setEffraye(false);
 		}
+		stateModel.setRunning(vraiJeu.isRunning);
         return stateModel;
     }
 
