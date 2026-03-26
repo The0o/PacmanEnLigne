@@ -9,8 +9,6 @@ import java.net.Socket;
 import java.util.Scanner;
 import com.google.gson.Gson;
 
-
-
 import game.Game;
 import game.PacmanGame;
 import model.GameStateModel;
@@ -24,26 +22,26 @@ public class GameClient {
     private ViewPacmanGame viewGame;
     
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte) throws IOException {
-    		this(IPAdress, port, viewGame, choixNiveau, difficulte, null);
+    		this(IPAdress, port, viewGame, choixNiveau, difficulte, null, null);
     }
 
-    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String sessionCookie) throws IOException {
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String sessionCookie, String username) throws IOException {
     	this.viewGame = viewGame;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
-    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, sessionCookie);
+    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, sessionCookie, username);
         this.send(gson.toJson(jeuParamInit));
     }
     
     public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom) throws IOException {
-    		this(IPAdress, port, viewGame, choixNiveau, difficulte, roomId, isCreation, isRandom, null);
+    		this(IPAdress, port, viewGame, choixNiveau, difficulte, roomId, isCreation, isRandom, null, null);
     }
 
-    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie) throws IOException {
+    public GameClient(String IPAdress, int port, ViewPacmanGame viewGame, String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie, String username) throws IOException {
     	this.viewGame = viewGame;
     	this.getInputDirection();
     	this.startClient(IPAdress, port);
-    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, roomId, isCreation, isRandom, sessionCookie);
+    	InitialisationPartieModele jeuParamInit = new InitialisationPartieModele(choixNiveau, difficulte, roomId, isCreation, isRandom, sessionCookie, username);
         this.send(gson.toJson(jeuParamInit));
     }
     
@@ -73,8 +71,6 @@ public class GameClient {
                         while((line = in.readLine()) != null) {
                             
                             if (line.contains("maze")) {
-                                //si c'est maze, ca veut dire qu'on cherche a lancer/initialiser une partie
-                            	//donc on va envoyer le plateau a l'utilisateur
                                 GameStateModel etatDuJeu = gson.fromJson(line, GameStateModel.class);
                                 
                                 if (viewGame == null) {
@@ -99,7 +95,6 @@ public class GameClient {
     
     private void getInputDirection() {
         if (this.viewGame != null && this.viewGame.getJFrame() != null) {
-            
             this.viewGame.getJFrame().addKeyListener(new java.awt.event.KeyAdapter() {
                 @Override
                 public void keyPressed(java.awt.event.KeyEvent e) {
@@ -119,9 +114,7 @@ public class GameClient {
         }
     }
 
-
     public void send(String obj) {
         server.write(obj);
-    
     }
 }

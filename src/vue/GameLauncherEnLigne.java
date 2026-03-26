@@ -8,11 +8,10 @@ public class GameLauncherEnLigne extends GameLauncher {
     
     @Override
     public void lancerJeu() throws Exception {
-        // 1. Demander l'adresse IP à l'utilisateur (par défaut localhost si on joue sur le même PC)
         String ipServeur = JOptionPane.showInputDialog(null, "Entrez l'adresse IP du serveur :", "localhost");
         
         if (ipServeur == null || ipServeur.trim().isEmpty()) {
-            return; // Le joueur a annulé
+            return;
         }
         
         int difficulte = choixDifficulte.getSelectedIndex();
@@ -26,7 +25,8 @@ public class GameLauncherEnLigne extends GameLauncher {
         }
         
         try {
-        	new GameClient(ipServeur, 9081, null, "src/layouts/" + choixNiveau.getSelectedItem(), diff, sessionCookie);
+            // NOUVEAU : Passage de usernameConnecte
+        	new GameClient(ipServeur, 9081, null, "src/layouts/" + choixNiveau.getSelectedItem(), diff, sessionCookie, usernameConnecte);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Impossible de se connecter au serveur " + ipServeur);
         }

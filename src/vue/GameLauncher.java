@@ -1050,7 +1050,8 @@ public class GameLauncher {
         String niveau = "src/layouts/" + choixNiveau.getSelectedItem();
 
         try {
-        	new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie);
+            // NOUVEAU : Passage de usernameConnecte
+        	new GameClient(ipServeur, 9081, null, niveau, diff, roomId, true, false, sessionCookie, usernameConnecte);
         	new RoomWindow(roomId);
         	jFrame.dispose(); 
             
@@ -1067,7 +1068,8 @@ public class GameLauncher {
         }
 
         try {
-            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie);
+            // NOUVEAU : Passage de usernameConnecte
+            new GameClient(ipServeur, 9081, null, "", 0.0, roomId, false, false, sessionCookie, usernameConnecte);
             jFrame.dispose();
             
         } catch (Exception e) {

@@ -5,10 +5,11 @@ import java.util.ArrayList;
 public class GameStateModel {
 	/*
 	 * Classe que le serveur va passer au client a chaque tour
-	 * qui contient toutes les donnees utile a l'affichage
+	 * qui contient toutes les donnees utiles a l'affichage
 	 */
 	private Maze maze;
 	private ArrayList<PositionAgent> positionsPacmans = new ArrayList<>();
+	private ArrayList<String> pacmansUsernames = new ArrayList<>(); // NOUVEAU
 	private ArrayList<PositionAgent> positionsFantomes = new ArrayList<>();
 	private boolean effraye;
     
@@ -29,6 +30,12 @@ public class GameStateModel {
 	}
 	public void setPositionsPacmans(ArrayList<PositionAgent> positionsPacmans) {
 		this.positionsPacmans = positionsPacmans;
+	}
+	public ArrayList<String> getPacmansUsernames() {
+		return pacmansUsernames;
+	}
+	public void setPacmansUsernames(ArrayList<String> pacmansUsernames) {
+		this.pacmansUsernames = pacmansUsernames;
 	}
 	public ArrayList<PositionAgent> getPositionsFantomes() {
 		return positionsFantomes;

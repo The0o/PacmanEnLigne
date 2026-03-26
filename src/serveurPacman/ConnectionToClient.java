@@ -27,6 +27,7 @@ public class ConnectionToClient {
     private SessionJeu session;
     private LaunchServer serveur;
     private String sessionCookie;
+    private String username; // NOUVEAU : On stocke le pseudo
     private Gson gson = new Gson();
 
     public ConnectionToClient(Socket socket, LaunchServer serveur) throws IOException {
@@ -42,35 +43,25 @@ public class ConnectionToClient {
                     boolean isInitialized = false;
 
                     while ((line = in.readLine()) != null) {
-                        /*
-                         * Deux cas ou on recoit les donnees d'un client :
-                         * Soit le client envoie des donnees pour initialiser une partie avec le niveau
-                         * et la difficulte
-                         * Soit le client envoie la donnees du mouvement qu'il realise sur une partie en
-                         * cours
-                         */
                         if (!isInitialized) {
                             try {
                                 InitialisationPartieModele init = gson.fromJson(line, InitialisationPartieModele.class);
                                 sessionCookie = init.getSessionCookie();
+                                username = init.getUsername(); // NOUVEAU
                                 serveur.assignerClientASession(ConnectionToClient.this, init);
                                 isInitialized = true;
                                 InitialisationPartieModele params = new InitialisationPartieModele(session.getNiveau(),
-                                        session.getDifficulte(), session.getRoomId(), false, session.isRandom(), null);
-                                // on vient re-initialiser pour gerer le cas ou on rejoint une room avec une id,
-                                // mais qu'on avait pas mis les meme params (parce que l'id est le meme)
+                                        session.getDifficulte(), session.getRoomId(), false, session.isRandom(), null, username);
                                 write(gson.toJson(params));
                             } catch (Exception e) {
                             }
                         } else if (session != null && session.isPartieDemarree() && pacman != null) {
                             try {
                                 int direction = Integer.parseInt(line);
-                                System.out.println(direction);
                                 if (pacman.getStrategie() instanceof StrategieInteractif) {
                                     ((StrategieInteractif) pacman.getStrategie()).setLastActionDirection(direction);
                                 }
                             } catch (NumberFormatException e) {
-
                             }
                         }
                     }
@@ -81,8 +72,6 @@ public class ConnectionToClient {
                     } catch (IOException ex) {
                     }
                     session.retirerClient(ConnectionToClient.this);
-                } finally {
-
                 }
             }
         };
@@ -116,7 +105,6 @@ public class ConnectionToClient {
 
     public void envoyerScore(int score) {
         if (sessionCookie == null || sessionCookie.isEmpty()) {
-            System.out.println("Score non envoye : sessionCookie absente pour ce client.");
             return;
         }
 
@@ -138,11 +126,7 @@ public class ConnectionToClient {
             }
 
             int responseCode = connection.getResponseCode();
-            String responseBody = readResponseBody(connection);
-            System.out.println("Reponse API score : HTTP " + responseCode + " - " + responseBody);
-            if (responseCode < 200 || responseCode >= 300) {
-                System.out.println("Erreur envoi score API avec cookie " + sessionCookie);
-            }
+            readResponseBody(connection);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -184,6 +168,10 @@ public class ConnectionToClient {
 
     public Agent getPacman() {
         return pacman;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public void setSession(SessionJeu session) {

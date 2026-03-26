@@ -3,6 +3,7 @@ package serveurPacman;
 import java.util.concurrent.CopyOnWriteArrayList;
 import com.google.gson.Gson;
 import game.PacmanGame;
+import model.Agent;
 import model.Fantome;
 import model.GameStateModel;
 import model.InitialisationPartieModele;
@@ -49,7 +50,6 @@ public class SessionJeu {
                 }
             }
             sendScore();
-            System.out.println("FIN PARTIE");
         });
         gameLoop.start();
     }
@@ -64,8 +64,6 @@ public class SessionJeu {
 			score += 500;
 		}
 		score = Math.max(0, score);
-
-		System.out.println("sendScore() appelee - foodInitial=" + nombreFoodInitial + ", foodRestante=" + nbFoodRestante + ", foodMangee=" + nbFoodMangee + ", nbTour=" + nbTour + ", score=" + score + ", joueurs=" + clientList.size());
 
 		for (ConnectionToClient client : clientList) {
 			client.envoyerScore(score);
@@ -88,10 +86,25 @@ public class SessionJeu {
         GameStateModel stateModel = new GameStateModel();
         stateModel.setMaze(vraiJeu.getMaze());
         for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
-            if (vraiJeu.listeAgent.get(i).getClass().equals(Fantome.class)) {
-                stateModel.getPositionsFantomes().add(vraiJeu.listeAgent.get(i).getPosition());
+            Agent agent = vraiJeu.listeAgent.get(i);
+            if (agent.getClass().equals(Fantome.class)) {
+                stateModel.getPositionsFantomes().add(agent.getPosition());
             } else {
-                stateModel.getPositionsPacmans().add(vraiJeu.listeAgent.get(i).getPosition());
+                stateModel.getPositionsPacmans().add(agent.getPosition());
+                
+                // NOUVEAU : Récupération du pseudo associé à l'agent
+                String pseudo = "Bot"; 
+                for (ConnectionToClient client : clientList) {
+                    if (client.getPacman() == agent) {
+                        if (client.getUsername() != null && !client.getUsername().isEmpty()) {
+                            pseudo = client.getUsername();
+                        } else {
+                            pseudo = "Joueur";
+                        }
+                        break;
+                    }
+                }
+                stateModel.getPacmansUsernames().add(pseudo);
             } 
         }
 		if (vraiJeu.capsulteTimer > 0) {
@@ -123,36 +136,12 @@ public class SessionJeu {
         }
     }
 
-	public boolean isPartieDemarree() {
-		return partieDemarree;
-	}
-
-	public String getNiveau() {
-		return niveau;
-	}
-
-	public double getDifficulte() {
-		return difficulte;
-	}
-
-    public String getRoomId() {
-        return roomId;
-    }
-    
-    public boolean isRandom() {
-        return isRandom;
-    }
-
-	public CopyOnWriteArrayList<ConnectionToClient> getClientList() {
-		return clientList;
-	}
-
-	public int getNombreJoueursAttendus() {
-		return nombreJoueursAttendus;
-	}
-
-	public PacmanGame getVraiJeu() {
-		return vraiJeu;
-	}
-    
+	public boolean isPartieDemarree() { return partieDemarree; }
+	public String getNiveau() { return niveau; }
+	public double getDifficulte() { return difficulte; }
+    public String getRoomId() { return roomId; }
+    public boolean isRandom() { return isRandom; }
+	public CopyOnWriteArrayList<ConnectionToClient> getClientList() { return clientList; }
+	public int getNombreJoueursAttendus() { return nombreJoueursAttendus; }
+	public PacmanGame getVraiJeu() { return vraiJeu; }
 }

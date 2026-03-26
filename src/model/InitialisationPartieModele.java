@@ -1,13 +1,9 @@
 package model;
 
-import java.util.ArrayList;
-
-import designPattern.StrategieAgent;
-
 public class InitialisationPartieModele {
 	/*
 	 * Classe que le client va donner au serveur UNE FOIS
-	 * pour indiquer le niveau et la difficulte choisi
+	 * pour indiquer le niveau, la difficulte et le nom d'utilisateur choisis
 	 */
 	
 	public String getChoixNiveau() {
@@ -22,6 +18,9 @@ public class InitialisationPartieModele {
 	public String getSessionCookie() {
 		return sessionCookie;
 	}
+	public String getUsername() {
+		return username;
+	}
 	public boolean isCreation() {
 		return isCreation;
 	}
@@ -30,22 +29,23 @@ public class InitialisationPartieModele {
 	}
 
 	public InitialisationPartieModele(String choixNiveau, double difficulte) {
-		this(choixNiveau, difficulte, null);
+		this(choixNiveau, difficulte, null, null);
 	}	
 
-	public InitialisationPartieModele(String choixNiveau, double difficulte, String sessionCookie) {
+	public InitialisationPartieModele(String choixNiveau, double difficulte, String sessionCookie, String username) {
 		this.choixNiveau = choixNiveau;
 		this.difficulte = difficulte;
 		this.sessionCookie = sessionCookie;
+		this.username = username;
         this.isRandom = true;
 	}
 	
 	public InitialisationPartieModele(String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom) {
-		this(choixNiveau, difficulte, roomId, isCreation, isRandom, null);
+		this(choixNiveau, difficulte, roomId, isCreation, isRandom, null, null);
 	}
 
-	public InitialisationPartieModele(String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie) {
-		this(choixNiveau, difficulte, sessionCookie);
+	public InitialisationPartieModele(String choixNiveau, double difficulte, String roomId, boolean isCreation, boolean isRandom, String sessionCookie, String username) {
+		this(choixNiveau, difficulte, sessionCookie, username);
 		this.roomId = roomId;
 		this.isCreation = isCreation;
 		this.isRandom = isRandom;
@@ -55,6 +55,7 @@ public class InitialisationPartieModele {
 	private double difficulte;
 	private String roomId;
 	private String sessionCookie;
-	private boolean isCreation; //utilise que quand isRandom est false, c'est quand on cree la room (et non la rejoindre)
-	private boolean isRandom; //si isRandom est true, ca veut dire qu'il fait une partie sans room
+	private String username;
+	private boolean isCreation; // utilise que quand isRandom est false, c'est quand on cree la room
+	private boolean isRandom;   // si isRandom est true, ca veut dire qu'il fait une partie sans room
 }
