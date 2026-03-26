@@ -7,6 +7,7 @@ import model.Agent;
 import model.Fantome;
 import model.GameStateModel;
 import model.InitialisationPartieModele;
+import model.Pacman;
 
 public class SessionJeu {
     
@@ -62,19 +63,31 @@ public class SessionJeu {
     public void sendScore() {
 		int nbFoodRestante = compterFoodRestante();
 		int nbTour = vraiJeu.turn;
-		int nbFoodMangee = Math.max(0, nombreFoodInitial - nbFoodRestante);
+		boolean victoire = nbFoodRestante == 0;
 
-		int score = nbFoodMangee * 100 - nbTour;
-		if (nbFoodRestante == 0) {
-			score += 500;
-		}
-		score = Math.max(0, score);
-
-		System.out.println("[SCORE] Fin de partie niveau=" + niveau + " score=" + score + " participants=" + participants.size());
+		System.out.println("[SCORE] Fin de partie niveau=" + niveau + " participants=" + participants.size()
+                + " tours=" + nbTour + " victoire=" + victoire);
 		for (ConnectionToClient client : participants) {
+            int score = calculerScoreClient(client, nbTour, victoire);
+            System.out.println("[SCORE] Score individuel user=" + client.getUsername() + " score=" + score);
 			client.envoyerScore(score);
 		}
 	}
+
+    private int calculerScoreClient(ConnectionToClient client, int nbTour, boolean victoire) {
+        if (!(client.getPacman() instanceof Pacman)) {
+            return 0;
+        }
+
+        Pacman pacman = (Pacman) client.getPacman();
+        int nbFoodMangee = vraiJeu.getNourritureMangeeParPacman(pacman);
+
+        int score = nbFoodMangee * 100 - nbTour;
+        if (victoire) {
+            score += 500;
+        }
+        return Math.max(0, score);
+    }
 
 	private int compterFoodRestante() {
 		int nbFood = 0;

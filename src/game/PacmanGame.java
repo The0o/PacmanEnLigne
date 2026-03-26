@@ -1,6 +1,8 @@
 package game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import designPattern.FantomeFactory;
 import designPattern.PacmanFactory;
@@ -23,6 +25,7 @@ public class PacmanGame extends Game {
     public ArrayList<Agent> listeAgent = new ArrayList<>();
     public int capsulteTimer = 0;
     public double difficultePourcentage;
+    private Map<Pacman, Integer> nourritureMangeeParPacman = new HashMap<>();
 
     public PacmanGame(int maxTurn, String layout, double difficultePourcentage) throws Exception {
         super(maxTurn);
@@ -49,9 +52,10 @@ public class PacmanGame extends Game {
         }
         PacmanFactory pacmanFactory = new PacmanFactory();
         for (PositionAgent agent : this.maze.getPacman_start()) {
-            Agent pacman = pacmanFactory.createAgent(agent);
+            Pacman pacman = (Pacman) pacmanFactory.createAgent(agent);
             pacman.setStrategie(new StrategieInteractif());
             listeAgent.add(pacman);
+            nourritureMangeeParPacman.put(pacman, 0);
         }
 
         FantomeFactory fantomeFactory = new FantomeFactory();
@@ -153,6 +157,7 @@ public class PacmanGame extends Game {
                     //on regarde si notre pacman est sur une case avec de la nourriture ou une gomme pour l'enlever
                     if (this.maze.isFood(agent.getPosition().getX(), agent.getPosition().getY())) {
                         this.maze.setFood(agent.getPosition().getX(), agent.getPosition().getY(), false);
+                        incrementerNourritureMangee((Pacman) agent);
                     }
                     if (this.maze.isCapsule(agent.getPosition().getX(), agent.getPosition().getY())) {
                         this.maze.setCapsule(agent.getPosition().getX(), agent.getPosition().getY(), false);
@@ -189,6 +194,19 @@ public class PacmanGame extends Game {
             }
         }
         return new PositionAgent(-1, -1, 0);
+    }
+
+    private void incrementerNourritureMangee(Pacman pacman) {
+        Integer total = nourritureMangeeParPacman.get(pacman);
+        if (total == null) {
+            total = 0;
+        }
+        nourritureMangeeParPacman.put(pacman, total + 1);
+    }
+
+    public int getNourritureMangeeParPacman(Pacman pacman) {
+        Integer total = nourritureMangeeParPacman.get(pacman);
+        return total == null ? 0 : total;
     }
     
 }
