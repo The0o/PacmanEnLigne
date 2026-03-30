@@ -65,7 +65,7 @@ public class GameLauncher {
     protected JTextField roomIdField;
     public static Clip clip;
 
-    private static final boolean USE_ONLINE_SERVER = false;
+    private static final boolean USE_ONLINE_SERVER = true;
     private static final String WEB_BASE_URL = USE_ONLINE_SERVER
             ? "http://46.101.67.203:8080/tomcat"
             : "http://localhost:8080/test";
@@ -1141,7 +1141,7 @@ public class GameLauncher {
          * return;
          * }
          */
-        String ipServeur = "localhost";
+        String ipServeur = "46.101.67.203";
 
         String roomId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -1170,7 +1170,7 @@ public class GameLauncher {
          * return;
          * }
          */
-        String ipServeur = "localhost";
+        String ipServeur = "46.101.67.203";
 
         try {
             // NOUVEAU : Passage de usernameConnecte
