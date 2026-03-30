@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -430,7 +429,7 @@ public class GameLauncher {
         return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    private void ouvrirPageWebAvecBridge(String target) throws UnsupportedEncodingException {
+    private void ouvrirPageWebAvecBridge(String target) {
         String token = demanderBridgeToken();
         if (token == null || token.isEmpty()) {
             JOptionPane.showMessageDialog(
@@ -442,8 +441,8 @@ public class GameLauncher {
         }
 
         String url = BRIDGE_LOGIN_URL
-                + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8.name())
-                + "&target=" + URLEncoder.encode(target, StandardCharsets.UTF_8.name());
+                + "?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
+                + "&target=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
         ouvrirPageWeb(url);
     }
 
