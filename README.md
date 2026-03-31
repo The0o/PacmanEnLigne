@@ -12,9 +12,9 @@
 4. Choisir le mode solo ou multijoueur
 5. Appuyer sur commencer.
 
-PS: Si le mode multijoueur est sélectionné, le server Pacman attendra un nouveau, tant qu'un autre joueur ne s'est pas connecté, la partie ne se lancera pas.
+<i>PS Si le mode multijoueur est sélectionné, le server Pacman attendra un nouveau, tant qu'un autre joueur ne s'est pas connecté, la partie ne se lancera pas.
 
-Le server Pacman et le server Web tournent actuellement sur un server privé avec une addresse ip dédiée donc pas besoin de les lancer.
+Le server Pacman et le server Web tournent actuellement sur un server privé avec une addresse ip dédiée donc pas besoin de les lancer.</i>
 
 
 ## Lancer une partie en local
