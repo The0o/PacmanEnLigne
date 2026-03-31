@@ -1,7 +1,6 @@
 package web;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,6 +17,7 @@ import java.sql.SQLException;
 /**
  * Servlet implementation class UsersServlet
  */
+//Register: http://localhost:8080/serveurWeb/api/users
 @WebServlet("/api/users")
 public class UsersServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -33,9 +33,12 @@ public class UsersServlet extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			request.getRequestDispatcher("/register.jsp").forward(request, response);
+		} catch (Exception e) {
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	private final UserDao userDao = new UserDao();
@@ -43,27 +46,23 @@ public class UsersServlet extends HttpServlet {
 	  @Override
 	  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 	    try {
-	      JsonObject obj = JsonUtil.GSON.fromJson(HttpUtil.readBody(req), JsonObject.class);
-
-	      if (obj == null || !obj.has("username") || !obj.has("password")) {
-	        JsonUtil.writeJson(resp, 400, error("Missing field: username or password"));
+	      Credentials credentials = extractCredentials(req);
+	      if (credentials == null) {
+	        writeError(req, resp, 400, "Missing field: username or password");
 	        return;
 	      }
 
-	      String username = obj.get("username").getAsString().trim();
-	      String password = obj.get("password").getAsString();
+	      String username = credentials.username;
+	      String password = credentials.password;
 
 	      if (username.isEmpty()) {
-	        JsonUtil.writeJson(resp, 400, error("username is empty"));
+	        writeError(req, resp, 400, "username is empty");
 	        return;
 	      }
 	      if (password == null || password.length() < 6) {
-	        JsonUtil.writeJson(resp, 400, error("password must be at least 6 chars"));
+	        writeError(req, resp, 400, "password must be at least 6 chars");
 	        return;
 	      }
-
-	      // Normalize username
-	      username = username.toLowerCase();
 
 	      String hash = PasswordUtil.hash(password);
 	      int id = userDao.createUser(username, hash);
@@ -72,17 +71,63 @@ public class UsersServlet extends HttpServlet {
 	      out.addProperty("id", id);
 	      out.addProperty("username", username);
 	      out.addProperty("role", "USER");
-	      JsonUtil.writeJson(resp, 201, out);
+	      if (isJsonRequest(req)) {
+	        JsonUtil.writeJson(resp, 201, out);
+	      } else {
+	        resp.sendRedirect(req.getContextPath() + "/api/auth/login?registered=1");
+	      }
 
 	    } catch (SQLException e) {
+	     e.printStackTrace();
 	      if ("23505".equals(e.getSQLState())) {
-	        JsonUtil.writeJson(resp, 409, error("username already exists"));
+	        writeError(req, resp, 409, "username already exists");
 	      } else {
-	        JsonUtil.writeJson(resp, 500, error("database error"));
+	        writeError(req, resp, 500, "database error");
 	      }
 	    } catch (Exception e) {
-	      JsonUtil.writeJson(resp, 400, error("invalid json"));
+	      writeError(req, resp, 400, "invalid json");
 	    }
+	  }
+
+	  private Credentials extractCredentials(HttpServletRequest req) throws IOException {
+		if (isJsonRequest(req)) {
+			JsonObject obj = JsonUtil.GSON.fromJson(HttpUtil.readBody(req), JsonObject.class);
+			if (obj == null || !obj.has("username") || !obj.has("password")) {
+				return null;
+			}
+			return new Credentials(
+				obj.get("username").getAsString(),
+				obj.get("password").getAsString()
+			);
+		}
+
+		String username = req.getParameter("username");
+		String password = req.getParameter("password");
+		if (username == null || password == null) {
+			return null;
+		}
+		return new Credentials(username, password);
+	  }
+
+	  private void writeError(HttpServletRequest req, HttpServletResponse resp, int status, String msg) throws IOException {
+		if (isJsonRequest(req)) {
+			JsonUtil.writeJson(resp, status, error(msg));
+			return;
+		}
+
+		req.setAttribute("error", msg);
+		req.setAttribute("username", req.getParameter("username"));
+		resp.setStatus(status);
+		try {
+			req.getRequestDispatcher("/register.jsp").forward(req, resp);
+		} catch (Exception e) {
+			resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+	  }
+
+	  private boolean isJsonRequest(HttpServletRequest req) {
+		String contentType = req.getContentType();
+		return contentType != null && contentType.toLowerCase().contains("application/json");
 	  }
 
 	  private JsonObject error(String msg) {
@@ -90,7 +135,14 @@ public class UsersServlet extends HttpServlet {
 	    o.addProperty("error", msg);
 	    return o;
 	  }
-	
 
-  
+	  private static class Credentials {
+		private final String username;
+		private final String password;
+
+		private Credentials(String username, String password) {
+			this.username = username == null ? null : username.trim().toLowerCase();
+			this.password = password;
+		}
+	  }
 }

@@ -1,11 +1,11 @@
 package web;
 
 import java.io.IOException;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.google.gson.JsonObject;
 import dao.UserDao;
@@ -13,86 +13,143 @@ import utils.HttpUtil;
 import utils.JsonUtil;
 import utils.PasswordUtil;
 
-import javax.servlet.http.*;
 import java.sql.SQLException;
 
-
-/**
- * Servlet implementation class AuthServlet
- */
+// http://localhost:8080/serveurWeb/api/auth/login
 @WebServlet("/api/auth/login")
 public class AuthServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
+    private static final long serialVersionUID = 1L;
+
+    private final UserDao userDao = new UserDao();
+
     public AuthServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		response.getWriter().append("Served at: ").append(request.getContextPath());
-	}
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        req.setAttribute("pageTitle", "Connexion");
+        try {
+            req.getRequestDispatcher("/login.jsp").forward(req, resp);
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
 
-	 private final UserDao userDao = new UserDao();
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            Credentials credentials = extractCredentials(req);
+            if (credentials == null) {
+                writeError(req, resp, 400, "Missing field: username or password", "/login.jsp");
+                return;
+            }
 
-	  @Override
-	  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-	    try {
-	      JsonObject obj = JsonUtil.GSON.fromJson(HttpUtil.readBody(req), JsonObject.class);
+            String username = credentials.username;
+            String password = credentials.password;
 
-	      if (obj == null || !obj.has("username") || !obj.has("password")) {
-	        JsonUtil.writeJson(resp, 400, error("Missing field: username or password"));
-	        return;
-	      }
+            UserDao.User user = userDao.findByUsername(username);
+            if (user == null) {
+                writeError(req, resp, 401, "invalid credentials", "/login.jsp");
+                return;
+            }
 
-	      String username = obj.get("username").getAsString().trim().toLowerCase();
-	      String password = obj.get("password").getAsString();
+            if (!user.isActive) {
+                writeError(req, resp, 403, "account disabled", "/login.jsp");
+                return;
+            }
 
-	      UserDao.User user = userDao.findByUsername(username);
-	      if (user == null) {
-	        JsonUtil.writeJson(resp, 401, error("invalid credentials"));
-	        return;
-	      }
+            boolean ok = PasswordUtil.verify(password, user.passwordHash);
+            if (!ok) {
+                userDao.incFailedLogin(user.id);
+                writeError(req, resp, 401, "invalid credentials", "/login.jsp");
+                return;
+            }
 
-	      if (!user.isActive) {
-	        JsonUtil.writeJson(resp, 403, error("account disabled"));
-	        return;
-	      }
+            userDao.updateLoginSuccess(user.id);
 
-	      boolean ok = PasswordUtil.verify(password, user.passwordHash);
-	      if (!ok) {
-	        userDao.incFailedLogin(user.id);
-	        JsonUtil.writeJson(resp, 401, error("invalid credentials"));
-	        return;
-	      }
+            // creer session apres login success
+            HttpSession session = req.getSession(true);
+            session.setAttribute("userId", user.id);
+            session.setAttribute("username", user.username);
+            session.setAttribute("role", user.role);
+            session.setMaxInactiveInterval(30 * 60); // 30 minutes
 
-	      userDao.updateLoginSuccess(user.id);
+            JsonObject out = new JsonObject();
+            out.addProperty("ok", true);
+            out.addProperty("message", "login success");
+            out.addProperty("userId", user.id);
+            out.addProperty("username", user.username);
+            out.addProperty("role", user.role);
 
-	      JsonObject out = new JsonObject();
-	      out.addProperty("ok", true);
-	      out.addProperty("userId", user.id);
-	      out.addProperty("username", user.username);
-	      out.addProperty("role", user.role);
-	      JsonUtil.writeJson(resp, 200, out);
+            if (isJsonRequest(req)) {
+                JsonUtil.writeJson(resp, 200, out);
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/home.jsp");
+            }
 
-	    } catch (SQLException e) {
-	      JsonUtil.writeJson(resp, 500, error("database error"));
-	    } catch (Exception e) {
-	      JsonUtil.writeJson(resp, 400, error("invalid json"));
-	    }
-	  }
+        } catch (SQLException e) {
+            writeError(req, resp, 500, "database error", "/login.jsp");
+        } catch (Exception e) {
+            writeError(req, resp, 400, "invalid json", "/login.jsp");
+        }
+    }
 
-	  private JsonObject error(String msg) {
-	    JsonObject o = new JsonObject();
-	    o.addProperty("error", msg);
-	    return o;
-	  }
+    private Credentials extractCredentials(HttpServletRequest req) throws IOException {
+        if (isJsonRequest(req)) {
+            JsonObject obj = JsonUtil.GSON.fromJson(HttpUtil.readBody(req), JsonObject.class);
+            if (obj == null || !obj.has("username") || !obj.has("password")) {
+                return null;
+            }
+            return new Credentials(
+                obj.get("username").getAsString(),
+                obj.get("password").getAsString()
+            );
+        }
 
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+        if (username == null || password == null) {
+            return null;
+        }
+        return new Credentials(username, password);
+    }
+
+    private void writeError(HttpServletRequest req, HttpServletResponse resp, int status, String msg, String viewPath)
+            throws IOException {
+        if (isJsonRequest(req)) {
+            JsonUtil.writeJson(resp, status, error(msg));
+            return;
+        }
+
+        req.setAttribute("error", msg);
+        req.setAttribute("username", req.getParameter("username"));
+        resp.setStatus(status);
+        try {
+            req.getRequestDispatcher(viewPath).forward(req, resp);
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean isJsonRequest(HttpServletRequest req) {
+        String contentType = req.getContentType();
+        return contentType != null && contentType.toLowerCase().contains("application/json");
+    }
+
+    private JsonObject error(String msg) {
+        JsonObject o = new JsonObject();
+        o.addProperty("error", msg);
+        return o;
+    }
+
+    private static class Credentials {
+        private final String username;
+        private final String password;
+
+        private Credentials(String username, String password) {
+            this.username = username == null ? null : username.trim().toLowerCase();
+            this.password = password;
+        }
+    }
 }

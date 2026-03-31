@@ -13,6 +13,8 @@ import designPattern.Observateur;
 import game.Game;
 import game.PacmanGame;
 import model.Agent;
+import model.Fantome;
+import model.GameStateModel;
 import model.Maze;
 import model.Pacman;
 import model.PositionAgent;
@@ -22,8 +24,16 @@ public class ViewPacmanGame implements Observateur {
     public PanelPacmanGame panelPacman;
     public JFrame jFrame;
     public boolean partieTerminee = false;
+    private String sessionCookie;
+    private String usernameConnecte;
 
     public ViewPacmanGame(Maze maze) {
+        this(maze, null, null);
+    }
+
+    public ViewPacmanGame(Maze maze, String sessionCookie, String usernameConnecte) {
+        this.sessionCookie = sessionCookie;
+        this.usernameConnecte = usernameConnecte;
         jFrame = new JFrame();
         jFrame.setTitle("Pacmann");
         Dimension windowSize = jFrame.getSize();
@@ -44,23 +54,39 @@ public class ViewPacmanGame implements Observateur {
     public JFrame getJFrame() {
         return jFrame;
     }
-
+    
+    public void actualiserClient(GameStateModel gameState) {
+    	if (gameState.isRunning()) {
+        	this.panelPacman.setMaze(gameState.getMaze());
+        	this.panelPacman.setPacmans_pos(gameState.getPositionsPacmans());
+        	this.panelPacman.setPacmansUsernames(gameState.getPacmansUsernames()); // NOUVEAU
+        	this.panelPacman.setGhostsScarred(gameState.getEffraye());
+        	this.panelPacman.setGhosts_pos(gameState.getPositionsFantomes());
+    	}
+    	else {
+    		finPartie("FIN DE PARTIE", Color.gray);
+    	}
+    	this.panelPacman.repaint();
+    }
+    
     @Override
     public void actualiser(Game game) {
         if (partieTerminee) return;
-        //evite un bug qui lançait/fermait tres rapidement des dizaines de fenetre au moment de revenir
-        //a l'ecran principale
         
         PacmanGame pacmanGame = (PacmanGame) game;
         boolean pacmanVivant = false;
         this.panelPacman.setMaze(pacmanGame.getMaze());
         ArrayList<PositionAgent> pacman = new ArrayList<>();
+        ArrayList<String> pseudosLocaux = new ArrayList<>(); // NOUVEAU
         ArrayList<PositionAgent> fantome = new ArrayList<>();
+        
+        int compteurJoueur = 1;
         for (Agent agent : pacmanGame.listeAgent) {
             if (agent instanceof Pacman) {
                 if (agent.getPosition().getX() != -1) {
                     pacmanVivant = true;
                     pacman.add(agent.getPosition());
+                    pseudosLocaux.add("J" + compteurJoueur++); // Pseudo par defaut hors-ligne
                 }
             }
             else {
@@ -69,6 +95,7 @@ public class ViewPacmanGame implements Observateur {
         }
 
         panelPacman.setPacmans_pos(pacman);
+        panelPacman.setPacmansUsernames(pseudosLocaux); // NOUVEAU
         panelPacman.setGhosts_pos(fantome);
 
         if (pacmanGame.getCapsuleTimer() > 0) {
@@ -88,10 +115,6 @@ public class ViewPacmanGame implements Observateur {
         panelPacman.repaint();
     }
 
-    /*
-    L'utilisateur a perdu ou gagne, on affiche le message avant
-    de le faire revenir sur l'ecran d'accueil
-    */
     public void finPartie(String message, Color couleur) {
         this.partieTerminee = true;
         panelPacman.afficherMessageFin(message, couleur);
@@ -101,11 +124,10 @@ public class ViewPacmanGame implements Observateur {
                 for (Window window: Window.getWindows()) {
                     window.dispose();
                 }
-                new GameLauncher();
+                new GameLauncherEnLigne(sessionCookie, usernameConnecte);
             }
         });
         timer.setRepeats(false);
         timer.start();
     }
-    
 }

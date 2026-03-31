@@ -1,18 +1,37 @@
 package utils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
-import javax.servlet.http.HttpServletRequest;
 
-public final class HttpUtil {
-  private HttpUtil() {}
+public class HttpUtil {
+    public static String readBody(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        String line;
 
-  public static String readBody(HttpServletRequest req) throws IOException {
-    StringBuilder sb = new StringBuilder();
-    try (BufferedReader br = req.getReader()) {
-      String line;
-      while ((line = br.readLine()) != null) sb.append(line);
+        BufferedReader reader = request.getReader();
+        while ((line = reader.readLine()) != null) {
+            sb.append(line);
+        }
+        return sb.toString();
     }
-    return sb.toString();
-  }
 }
+
+//package utils;
+//
+//import javax.servlet.http.HttpServletRequest;
+//import java.io.BufferedReader;
+//import java.io.IOException;
+//
+//public class HttpUtil {
+//  public static String readBody(HttpServletRequest request) throws IOException {
+//      StringBuilder sb = new StringBuilder();
+//      String line;
+//
+//      BufferedReader reader = request.getReader();
+//      while ((line = reader.readLine()) != null) {
+//          sb.append(line);
+//      }
+//      return sb.toString();
+//  }
+//}

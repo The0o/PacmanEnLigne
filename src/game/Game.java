@@ -10,7 +10,7 @@ public abstract class Game implements Runnable, Observable {
     public int maxTurn;
     public boolean isRunning;
     public Thread thread;
-    public long timeSleep = 200L;
+    public long timeSleep = 100L;
     public List<Observateur> observateurs = new ArrayList<>();
 
     public Game(int maxTurn) {

@@ -1,0 +1,173 @@
+package serveurPacman;
+
+import java.util.concurrent.CopyOnWriteArrayList;
+import com.google.gson.Gson;
+import game.PacmanGame;
+import model.Agent;
+import model.Fantome;
+import model.GameStateModel;
+import model.InitialisationPartieModele;
+import model.Pacman;
+
+public class SessionJeu {
+    
+    private CopyOnWriteArrayList<ConnectionToClient> clientList;
+    private CopyOnWriteArrayList<ConnectionToClient> participants;
+    private boolean partieDemarree = false;
+    private PacmanGame vraiJeu;
+    private int nombreJoueursAttendus;
+    private String niveau;
+    private double difficulte;
+    private String roomId; 
+    private boolean isRandom;
+    private int nombreFoodInitial;
+    private Gson gson = new Gson();
+    private LaunchServer serveur;
+
+    public SessionJeu(InitialisationPartieModele init, LaunchServer serveur) throws Exception {
+        this.clientList = new CopyOnWriteArrayList<>();
+        this.participants = new CopyOnWriteArrayList<>();
+        this.niveau = init.getChoixNiveau();
+        this.difficulte = init.getDifficulte();
+        this.roomId = init.getRoomId(); 
+        this.isRandom = init.isRandom();
+        this.serveur = serveur;
+        
+        this.vraiJeu = new PacmanGame(1000, this.niveau, this.difficulte);
+        this.vraiJeu.init();
+        this.nombreJoueursAttendus = this.vraiJeu.getMaze().getInitNumberOfPacmans();
+        this.nombreFoodInitial = compterFoodRestante();
+    }
+
+    public void demarrerPartie() {
+        partieDemarree = true;
+        
+        Thread gameLoop = new Thread(() -> {
+            while(vraiJeu.isRunning) {
+                try {
+                    vraiJeu.step();
+                    GameStateModel gameState = pacmanGameToGameStateModel(vraiJeu);
+                    sendToAll(gson.toJson(gameState));
+                    Thread.sleep(100);
+                    
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            sendScore();
+            serveur.retirerSession(this);
+        });
+        gameLoop.start();
+    }
+
+    public void sendScore() {
+		int nbFoodRestante = compterFoodRestante();
+		int nbTour = vraiJeu.turn;
+		boolean victoire = nbFoodRestante == 0;
+
+		System.out.println("[SCORE] Fin de partie niveau=" + niveau + " participants=" + participants.size()
+                + " tours=" + nbTour + " victoire=" + victoire);
+		for (ConnectionToClient client : participants) {
+            int score = calculerScoreClient(client, nbTour, victoire);
+            System.out.println("[SCORE] Score individuel user=" + client.getUsername() + " score=" + score);
+			client.envoyerScore(score);
+		}
+	}
+
+    private int calculerScoreClient(ConnectionToClient client, int nbTour, boolean victoire) {
+        if (!(client.getPacman() instanceof Pacman)) {
+            return 0;
+        }
+
+        Pacman pacman = (Pacman) client.getPacman();
+        int nbFoodMangee = vraiJeu.getNourritureMangeeParPacman(pacman);
+
+        int score = nbFoodMangee * 100 - nbTour;
+        if (victoire) {
+            score += 500;
+        }
+        return Math.max(0, score);
+    }
+
+	private int compterFoodRestante() {
+		int nbFood = 0;
+		for (int i = 0; i < vraiJeu.getMaze().getSizeX(); i++) {
+			for (int j = 0; j < vraiJeu.getMaze().getSizeY(); j++) {
+				if (vraiJeu.getMaze().isFood(i, j)) {
+					nbFood++;
+				}
+			}
+		}
+		return nbFood;
+	}
+
+	private GameStateModel pacmanGameToGameStateModel(PacmanGame vraiJeu) {
+        GameStateModel stateModel = new GameStateModel();
+        stateModel.setMaze(vraiJeu.getMaze());
+        for (int i = 0; i < vraiJeu.listeAgent.size(); i++) {
+            Agent agent = vraiJeu.listeAgent.get(i);
+            if (agent.getClass().equals(Fantome.class)) {
+                stateModel.getPositionsFantomes().add(agent.getPosition());
+            } else {
+                stateModel.getPositionsPacmans().add(agent.getPosition());
+                
+                // NOUVEAU : Récupération du pseudo associé à l'agent
+                String pseudo = "Bot"; 
+                for (ConnectionToClient client : clientList) {
+                    if (client.getPacman() == agent) {
+                        if (client.getUsername() != null && !client.getUsername().isEmpty()) {
+                            pseudo = client.getUsername();
+                        } else {
+                            pseudo = "Joueur";
+                        }
+                        break;
+                    }
+                }
+                stateModel.getPacmansUsernames().add(pseudo);
+            } 
+        }
+		if (vraiJeu.capsulteTimer > 0) {
+			stateModel.setEffraye(true);
+		} else {
+			stateModel.setEffraye(false);
+		}
+		stateModel.setRunning(vraiJeu.isRunning);
+        return stateModel;
+    }
+
+    public void ajouterClient(ConnectionToClient client) {
+        clientList.add(client);
+        if (!participants.contains(client)) {
+            participants.add(client);
+        }
+        client.assignerPacman();
+        GameStateModel stateModel = pacmanGameToGameStateModel(vraiJeu);
+        client.write(gson.toJson(stateModel));
+    }
+
+    public void retirerClient(ConnectionToClient client) {
+        clientList.remove(client);
+        if (clientList.isEmpty()) {
+            serveur.retirerSession(this);
+        }
+    }
+    
+    public void sendToOne(int index, String message) throws IndexOutOfBoundsException {
+        clientList.get(index).write(message);
+    }
+
+    public void sendToAll(String message) {
+        for(ConnectionToClient client : clientList) {
+            client.write(message);
+        }
+    }
+
+	public boolean isPartieDemarree() { return partieDemarree; }
+	public String getNiveau() { return niveau; }
+	public double getDifficulte() { return difficulte; }
+    public String getRoomId() { return roomId; }
+    public boolean isRandom() { return isRandom; }
+	public CopyOnWriteArrayList<ConnectionToClient> getClientList() { return clientList; }
+	public int getNombreJoueursAttendus() { return nombreJoueursAttendus; }
+	public PacmanGame getVraiJeu() { return vraiJeu; }
+}

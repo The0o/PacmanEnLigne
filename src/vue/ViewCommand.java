@@ -49,7 +49,7 @@ public class ViewCommand implements Observateur, KeyListener {
         jFrame.setFocusable(true);
 
         //-------------4 BOUTONS COMMANDES-------------
-        ImageIcon restartIcon = new ImageIcon("icons/icon_restart.png");
+        ImageIcon restartIcon = new ImageIcon("src/icons/icon_restart.png");
         restartButton = new JButton(restartIcon);
         restartButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -57,7 +57,7 @@ public class ViewCommand implements Observateur, KeyListener {
             }
         });
         restartButton.setFocusable(false);
-        ImageIcon pauseIcon = new ImageIcon("icons/icon_pause.png");
+        ImageIcon pauseIcon = new ImageIcon("src/icons/icon_pause.png");
         pauseButton = new JButton(pauseIcon);
         pauseButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -65,7 +65,7 @@ public class ViewCommand implements Observateur, KeyListener {
             }
         });
         pauseButton.setFocusable(false);
-        ImageIcon runIcon = new ImageIcon("icons/icon_run.png");
+        ImageIcon runIcon = new ImageIcon("src/icons/icon_run.png");
         runButton = new JButton(runIcon);
         runButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -73,7 +73,7 @@ public class ViewCommand implements Observateur, KeyListener {
             }
         });
         runButton.setFocusable(false);
-        ImageIcon stepIcon = new ImageIcon("icons/icon_step.png");
+        ImageIcon stepIcon = new ImageIcon("src/icons/icon_step.png");
         stepButton = new JButton(stepIcon);
         stepButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
