@@ -6,11 +6,10 @@
 
 ## Lancer une partie
 
-1. Se mettre dans la branche "pacmanServeurClient".
-2. Lancer le jeu `src/TestEnLigne`.
-3. Se connecter ou créer un compte.
-4. Choisir le mode solo ou multijoueur
-5. Appuyer sur commencer.
+1. Lancer le jeu `src/TestEnLigne`.
+2. Se connecter ou créer un compte.
+3. Choisir le mode solo ou multijoueur
+4. Appuyer sur commencer.
 
 <i>PS Si le mode multijoueur est sélectionné, le server Pacman attendra un nouveau, tant qu'un autre joueur ne s'est pas connecté, la partie ne se lancera pas.
 
