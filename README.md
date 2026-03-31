@@ -1,8 +1,8 @@
 # PacmanEnLigne
 
-Théo LAIDIN 
-Nicolas MARIE-CATHERINE 
-Minh THOAI
+- Théo LAIDIN 
+- Nicolas MARIE-CATHERINE 
+- Minh THOAI
 
 ## Lancer une partie
 
