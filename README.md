@@ -1,5 +1,9 @@
 # PacmanEnLigne
 
+Théo LAIDIN 
+Nicolas MARIE-CATHERINE 
+Minh THOAI
+
 ## Lancer une partie
 
 1.Se mettre dans la branche "pacmanServeurClient".
@@ -54,8 +58,19 @@ String ipServeur = ""http://localhost:8080//test/api/scores"
 ```
 Ensuite,
 
-1. Lancer le Server Web via l'autre pojet Github
+1. Lancer le Server Web via l'autre projet Github
 2. Lancer le Server Pacman via `serveurPacman/LaunchServer`
 3. Lancer Lancer le jeu `src/TestEnLigne`.
 
-## Pistes d'améliorations
+## Bugs / réglages à corriger
+
+- La difficulté ( les fantômes sont trop forts ).
+- le système de room personalisée, problème lorsque l'on clique sur le bouton "commencer" au lieu du bouton "rejoindre"
+
+
+# Potentielles pistes d'améliorations
+
+- Ajouter un système de boutique en ligne de skins 
+- Faire en sorte que le server Pacman choisisse lui même le layout de jeu.
+- Ajouter un mode "versus" 1vs1 Pacman contre Pacman ( score )
+- Ajouter un mode "versus" où un des joueurs incarne le fantôme.
