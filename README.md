@@ -62,15 +62,15 @@ Ensuite,
 2. Lancer le Server Pacman via `serveurPacman/LaunchServer`
 3. Lancer Lancer le jeu `src/TestEnLigne`.
 
+# Pistes d'améliorations
+
+- Ajout d'un système de boutique en ligne de skins 
+- Faire en sorte que le server Pacman choisisse lui même le layout de jeu.
+- Ajout d'un mode "versus" 1vs1 Pacman contre Pacman ( score )
+- Ajout d'un mode "versus" où un des joueurs incarne le fantôme.
+
 ## Bugs / réglages à corriger
 
 - La difficulté ( les fantômes sont trop forts ).
 - le système de room personalisée, problème lorsque l'on clique sur le bouton "commencer" au lieu du bouton "rejoindre"
 
-
-# Potentielles pistes d'améliorations
-
-- Ajouter un système de boutique en ligne de skins 
-- Faire en sorte que le server Pacman choisisse lui même le layout de jeu.
-- Ajouter un mode "versus" 1vs1 Pacman contre Pacman ( score )
-- Ajouter un mode "versus" où un des joueurs incarne le fantôme.
